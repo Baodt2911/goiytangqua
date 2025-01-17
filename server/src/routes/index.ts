@@ -1,0 +1,9 @@
+export { default as commentRouter } from "./comment.route";
+export { default as filterRouter } from "./filter.route";
+export { default as postRouter } from "./post.route";
+export { default as productRouter } from "./product.route";
+export { default as refreshTokenRouter } from "./refresh_token.route";
+export { default as userRouter } from "./user.route";
+export { default as notificationRouter } from "./notification.route";
+export { default as otpRouter } from "./otp.route";
+export { default as relationshipRouter } from "./relationship.route";
