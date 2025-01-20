@@ -119,7 +119,7 @@
           <mxGeometry y="78" width="140" height="26" as="geometry" />
         </mxCell>
         <mxCell id="nXrRDYK2SzlN4TtGPAdK-62" value="Relationships" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="90" y="90" width="190" height="208" as="geometry" />
+          <mxGeometry x="90" y="90" width="190" height="182" as="geometry" />
         </mxCell>
         <mxCell id="nXrRDYK2SzlN4TtGPAdK-63" value="+ _id: ObjectId" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="nXrRDYK2SzlN4TtGPAdK-62" vertex="1">
           <mxGeometry y="26" width="190" height="26" as="geometry" />
@@ -130,17 +130,14 @@
         <mxCell id="nXrRDYK2SzlN4TtGPAdK-81" value="+ name : string" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="nXrRDYK2SzlN4TtGPAdK-62" vertex="1">
           <mxGeometry y="78" width="190" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="nXrRDYK2SzlN4TtGPAdK-82" value="+ gender: string" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="nXrRDYK2SzlN4TtGPAdK-62" vertex="1">
+        <mxCell id="nXrRDYK2SzlN4TtGPAdK-65" value="+ relationship-type: string&amp;nbsp;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="nXrRDYK2SzlN4TtGPAdK-62" vertex="1">
           <mxGeometry y="104" width="190" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="nXrRDYK2SzlN4TtGPAdK-65" value="+ relationship-type: string&amp;nbsp;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="nXrRDYK2SzlN4TtGPAdK-62" vertex="1">
+        <mxCell id="nXrRDYK2SzlN4TtGPAdK-64" value="+ preferences: Object" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="nXrRDYK2SzlN4TtGPAdK-62" vertex="1">
           <mxGeometry y="130" width="190" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="nXrRDYK2SzlN4TtGPAdK-64" value="+ preferences: Object" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="nXrRDYK2SzlN4TtGPAdK-62" vertex="1">
-          <mxGeometry y="156" width="190" height="26" as="geometry" />
-        </mxCell>
         <mxCell id="nXrRDYK2SzlN4TtGPAdK-69" value="+ anniversaries: Array Object" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="nXrRDYK2SzlN4TtGPAdK-62" vertex="1">
-          <mxGeometry y="182" width="190" height="26" as="geometry" />
+          <mxGeometry y="156" width="190" height="26" as="geometry" />
         </mxCell>
         <mxCell id="nXrRDYK2SzlN4TtGPAdK-74" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;startArrow=ERmany;startFill=0;" parent="1" source="nXrRDYK2SzlN4TtGPAdK-70" target="nXrRDYK2SzlN4TtGPAdK-69" edge="1">
           <mxGeometry relative="1" as="geometry" />
