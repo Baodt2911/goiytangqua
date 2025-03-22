@@ -45,7 +45,11 @@ export const deleteOtpService = async (email: string) => {
     throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
   }
 };
-const sendToEmail = async (email: string, otp: string) => {
+export const sendToEmail = async (
+  email: string,
+  title: string,
+  html: string
+) => {
   try {
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -59,8 +63,31 @@ const sendToEmail = async (email: string, otp: string) => {
     await transporter.sendMail({
       from: process.env.EMAIL,
       to: email,
-      subject: "goiytangqua - Mã xác nhận",
-      html: `<!DOCTYPE html>
+      subject: title,
+      html: html,
+    });
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
+export const sendOtpService = async (email: string) => {
+  try {
+    const isEmail = await _user.findOne({ email });
+    if (!isEmail) {
+      return {
+        status: StatusCodes.BAD_REQUEST,
+        message: "Email đã đăng ký tài khoản",
+      };
+    }
+    const otp = otpGenerate.generate(6, {
+      digits: true,
+      lowerCaseAlphabets: false,
+      upperCaseAlphabets: false,
+      specialChars: false,
+    });
+    const title = "goiytangqua - Mã xác nhận";
+    const html = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -85,32 +112,8 @@ const sendToEmail = async (email: string, otp: string) => {
 
 </body>
 </html>
-`,
-    });
-  } catch (error: any) {
-    console.error(error);
-    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
-  }
-};
-export const sendOtpService = async (
-  email: string,
-  forgotPassword: boolean
-) => {
-  try {
-    const isEmail = await _user.findOne({ email });
-    if (!(!isEmail || forgotPassword)) {
-      return {
-        status: StatusCodes.BAD_REQUEST,
-        message: "Email đã đăng ký tài khoản",
-      };
-    }
-    const otp = otpGenerate.generate(6, {
-      digits: true,
-      lowerCaseAlphabets: false,
-      upperCaseAlphabets: false,
-      specialChars: false,
-    });
-    await sendToEmail(email, otp);
+`;
+    await sendToEmail(email, title, html);
     await createOtpService(email, otp);
     return {
       status: StatusCodes.OK,

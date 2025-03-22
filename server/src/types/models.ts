@@ -5,8 +5,7 @@ export type User = Document & {
   password?: string;
   googleId?: string;
   birthday?: Date;
-  gender?: "male" | "female";
-  relationships?: ObjectId[];
+  gender?: "nam" | "nữ";
   preferences?: string[];
   role: "admin" | "user";
   googleRefreshToken?: string;
@@ -17,7 +16,7 @@ export type Post = Document & {
   content: string;
   tags?: string[];
   filters?: Record<string, string>;
-  products: ObjectId[];
+  products?: ObjectId[];
 };
 export type Comment = Document & {
   content: string;
@@ -41,10 +40,16 @@ export type RefreshToken = Document & {
 };
 export type Relationship = Document & {
   userId: ObjectId;
-  gender?: "male" | "female";
+  name: string;
   relationshipType: string;
   preferences?: string[];
-  anniversaries: { name: string; date: Date }[];
+  anniversaries: {
+    name: string;
+    date: {
+      day: number;
+      month: number;
+    };
+  }[];
 };
 export type Notification = Document & {
   userId: ObjectId;

@@ -8,3 +8,12 @@ export type RegisterRequestDTO = {
   password: string;
   otp: string;
 };
+export type ChangePaswordRequestDTO = {
+  currentPassword: string;
+  newPassword: string;
+};
+export type UpdateProfileRequestDTO = {
+  name?: string;
+  birthday?: Date;
+  gender?: "nam" | "nữ";
+};

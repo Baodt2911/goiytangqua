@@ -1,0 +1,16 @@
+import multer from "multer";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { cloudinary } from "./cloudinary.config";
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    return {
+      folder: "images_product",
+      format: "webp",
+      public_id: file.originalname.split(".")[0],
+      transformation: [{ quality: "auto", fetch_format: "webp" }],
+    };
+  },
+});
+// const storage = multer.memoryStorage();
+export const upload = multer({ storage: storage });

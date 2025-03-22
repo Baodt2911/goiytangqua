@@ -1,35 +1,60 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+import AuthLayout from "./layouts/Auth";
+import MainLayout from "./layouts/Main";
+import Home from "./pages/Home";
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "./app/hook";
+import { loginSuccess, logout } from "./features/auth/auth.slice";
+import { isTokenExpired } from "./utils/token";
+import { refreshToken } from "./features/auth/auth.service";
+import { ConfigProvider, theme } from "antd";
 function App() {
-  const [count, setCount] = useState(0)
-
+  const dispatch = useAppDispatch();
+  const isDarkMode = useAppSelector((state) => state.theme.mode);
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        if (isTokenExpired(token)) {
+          await refreshToken();
+        } else {
+          dispatch(loginSuccess(token));
+        }
+      } else {
+        dispatch(logout());
+      }
+    };
+    checkAuth();
+  }, [dispatch]);
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <ConfigProvider
+      theme={{
+        algorithm:
+          isDarkMode === "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm,
+        token: {
+          colorPrimary: "#FF6B81", // Màu chính (nút, liên kết)
+          colorInfo: "#FF8C00", // Màu phụ
+          colorSuccess: "#28C76F", // Màu xanh lá (thành công)
+          colorWarning: "#FFC107", // Màu vàng cảnh báo
+          colorError: "#FF4757", // Màu đỏ lỗi
+          colorBgBase: "#fff", // Màu nền tổng thể
+          colorTextBase: "#333333", // Màu chữ chính
+        },
+      }}
+    >
+      <Router>
+        <Routes>
+          <Route path="/home" element={<MainLayout />}>
+            <Route path="" element={<Home />} />
+          </Route>
+          <Route path="/auth" element={<AuthLayout />}>
+            <Route path="login" element={<Login />} />
+          </Route>
+        </Routes>
+      </Router>
+    </ConfigProvider>
+  );
 }
 
-export default App
+export default App;

@@ -1,14 +1,19 @@
+import otpGenerate from "otp-generator";
 import bcrypt from "bcrypt";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { _user } from "src/models";
-import { deleteOtpService, verifyOtpService } from "./otp.service";
 import {
   saveRefreshTokenService,
   generateAccessToken,
   generateRefreshToken,
   deleteRefreshTokenService,
-} from "./refresh_token.service";
+  deleteOtpService,
+  verifyOtpService,
+  generateResetToken,
+  sendToEmail,
+} from "src/services";
 import { User } from "src/types";
+import { UpdateProfileRequestDTO } from "src/dtos";
 
 export const googleCallbackService = async (user: any) => {
   try {
@@ -39,11 +44,11 @@ export const getCurrentUserService = async (user: any) => {
         message: "Không tìm thấy người dùng",
       };
     }
-    const { name, email, gender, birthday, relationships, role } = existingUser;
+    const { name, email, gender, birthday, role } = existingUser;
     return {
       status: StatusCodes.OK,
       message: ReasonPhrases.OK,
-      element: { name, email, gender, birthday, relationships, role },
+      element: { name, email, gender, birthday, role },
     };
   } catch (error: any) {
     console.error(error);
@@ -118,6 +123,131 @@ export const logoutService = async (refreshToken: string) => {
     return {
       status: StatusCodes.OK,
       message: "Đăng xuất thành công",
+    };
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
+export const changePasswordService = async (
+  user: any,
+  currentPassword: string,
+  newPassword: string
+) => {
+  try {
+    const existingUser = await _user.findById(user.userId);
+    if (!existingUser) {
+      return {
+        status: StatusCodes.NOT_FOUND,
+        message: "Tài khoản không tồn tại",
+      };
+    }
+    const isValidPassword = await bcrypt.compare(
+      currentPassword,
+      existingUser?.password || ""
+    );
+    if (!isValidPassword) {
+      return {
+        status: StatusCodes.BAD_REQUEST,
+        message: "Mật khẩu không đúng",
+      };
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(newPassword, salt);
+    await existingUser?.updateOne({ $set: { password: hashPassword } });
+    return {
+      status: StatusCodes.OK,
+      message: "Đổi mật khẩu thành công",
+    };
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
+export const requestResetPasswordService = async (email: string) => {
+  try {
+    const isEmail = await _user.findOne({ email });
+    if (!isEmail) {
+      return {
+        status: StatusCodes.NOT_FOUND,
+        message: "Email chưa đăng ký",
+      };
+    }
+    const otp = otpGenerate.generate(6, {
+      digits: true,
+      lowerCaseAlphabets: false,
+      upperCaseAlphabets: false,
+      specialChars: false,
+    });
+    const payload = {
+      userId: isEmail._id,
+      otp,
+    };
+    const token = generateResetToken(payload);
+    const reset_url = process.env.URL_CLIENT + `/reset-password?token=${token}`;
+    const title = "goiytangqua - Đặt lại mật khẩu";
+    const html = `<p>Thay đổi mật khẩu của bạn: ${reset_url}</p>`;
+    await sendToEmail(email, title, html);
+    return {
+      status: StatusCodes.OK,
+      message: "Vui lòng kiểm tra email của bạn",
+    };
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
+export const resetPasswordService = async (user: any, newPassword: string) => {
+  try {
+    const existingUser = await _user.findById(user.userId);
+    if (!existingUser) {
+      return {
+        status: StatusCodes.NOT_FOUND,
+        message: "Tài khoản không tồn tại",
+      };
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(newPassword, salt);
+    existingUser.updateOne({ $set: { password: hashPassword } });
+    return {
+      status: StatusCodes.OK,
+      message: "Thay đổi mật khẩu thành công",
+    };
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
+export const updateProfileService = async (
+  user: any,
+  data: UpdateProfileRequestDTO
+) => {
+  try {
+    const { name, birthday, gender } = data;
+    const updateFields: UpdateProfileRequestDTO = {};
+    if (name) updateFields.name = name;
+    if (birthday) updateFields.birthday = birthday;
+    if (gender) updateFields.gender = gender;
+
+    if (Object.keys(updateFields).length === 0) {
+      throw new Error("Không có trường nào hợp lệ để cập nhật");
+    }
+    const existingUser = await _user.findByIdAndUpdate(
+      user.userId,
+      {
+        $set: updateFields,
+      },
+      { new: true }
+    );
+    if (!existingUser) {
+      return {
+        status: StatusCodes.OK,
+        message: "Tài khoản không tồn tại",
+      };
+    }
+    return {
+      status: StatusCodes.OK,
+      message: "Cập nhập thông tin thành công",
     };
   } catch (error: any) {
     console.error(error);
