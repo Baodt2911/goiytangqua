@@ -62,7 +62,7 @@ const ProductList = () => {
   const [products, setProducts] = useState(mockProducts);
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div>
       <Row gutter={[16, 16]}>
         {products.map((product) => (
           <Col xs={24} sm={12} md={8} lg={6} key={product._id}>

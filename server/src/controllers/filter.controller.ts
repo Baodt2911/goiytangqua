@@ -5,6 +5,7 @@ import {
   addFilterService,
   deleteFilterService,
   getFilterService,
+  updateFilterService,
 } from "src/services";
 export const getFilterController = async (req: Request, res: Response) => {
   try {
@@ -41,6 +42,26 @@ export const deleteFilterController = async (
   try {
     const { id } = req.params;
     const { status, message } = await deleteFilterService(id);
+    res.status(status).json({ status, message });
+  } catch (error: any) {
+    console.error(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      error: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
+    });
+  }
+};
+export const updateFilterController = async (
+  req: Request<{ id: string }, {}, FilterRequestDTO>,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+    const { type, options } = req.body;
+    const { status, message } = await updateFilterService(id, {
+      type,
+      options,
+    });
     res.status(status).json({ status, message });
   } catch (error: any) {
     console.error(error);

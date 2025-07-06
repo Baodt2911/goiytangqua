@@ -142,8 +142,23 @@ const Home: React.FC = () => {
         >
           <GiftFilter />
         </Drawer>
-        <PostList />
-        <ProductList />
+        <Flex
+          style={{
+            width: "60%",
+            marginTop: "50px",
+          }}
+          gap={"large"}
+          vertical
+        >
+          <Title level={4} style={{ fontFamily: "Oswald", color: "#FF6B81" }}>
+            Những gợi ý hay về các món quà
+          </Title>
+          <PostList />
+          <Title level={4} style={{ fontFamily: "Oswald", color: "#FF6B81" }}>
+            Các sản phẩm được lựa chọn mua nhiều nhất
+          </Title>
+          <ProductList />
+        </Flex>
       </Flex>
     </Content>
   );

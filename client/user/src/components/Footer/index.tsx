@@ -22,6 +22,7 @@ const AppFooter = () => {
         padding: "50px 20px",
         textAlign: "center",
         borderTop: "1px solid rgba(0, 0, 0, 0.1)",
+        marginTop: "50px",
       }}
     >
       <div

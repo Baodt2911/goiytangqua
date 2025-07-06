@@ -3,6 +3,7 @@ import {
   addFilterController,
   deleteFilterController,
   getFilterController,
+  updateFilterController,
 } from "src/controllers";
 import {
   validateFilterRequest,
@@ -17,6 +18,13 @@ router.delete(
   verifyAdmin,
   validateObjectIdRequest,
   deleteFilterController
+);
+router.put(
+  "/update/:id",
+  verifyAdmin,
+  validateObjectIdRequest,
+  validateFilterRequest,
+  updateFilterController
 );
 
 export default router;

@@ -52,3 +52,28 @@ export const deleteFilterService = async (filterId: string) => {
     throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
   }
 };
+export const updateFilterService = async (
+  id: string,
+  data: FilterRequestDTO
+) => {
+  try {
+    const updated = await _filter.findByIdAndUpdate(
+      id,
+      { $set: { type: data.type, options: data.options } },
+      { new: true }
+    );
+    if (!updated) {
+      return {
+        status: StatusCodes.NOT_FOUND,
+        message: "Bộ lọc không tồn tại hoặc đã bị xóa",
+      };
+    }
+    return {
+      status: StatusCodes.OK,
+      message: "Cập nhật bộ lọc thành công",
+    };
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};

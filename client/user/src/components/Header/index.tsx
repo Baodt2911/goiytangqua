@@ -39,8 +39,8 @@ const AppHeader: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const list = useAppSelector((state: RootState) => state.notifications.list);
-  const mode = useAppSelector((state: RootState) => state.theme.mode);
-  console.log(mode);
+  const theme = useAppSelector((state: RootState) => state.theme.mode);
+  console.log(theme);
 
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const items: MenuItem[] = [
