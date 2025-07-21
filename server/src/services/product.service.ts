@@ -3,6 +3,17 @@ import { ProductRequestDTO, getAllProductRequestQueryDTO } from "src/dtos";
 import { _product } from "src/models";
 import slugify from "slugify";
 import { normalizeTagsToSlug } from "src/utils";
+type SortType =
+  | "price_asc"
+  | "price_desc"
+  | "name_asc"
+  | "name_desc"
+  | "newest"
+  | "oldest";
+
+interface SortObject {
+  [key: string]: 1 | -1;
+}
 export const createProductService = async (data: ProductRequestDTO) => {
   try {
     let { slug, name, tags, ...other } = data;
@@ -10,7 +21,7 @@ export const createProductService = async (data: ProductRequestDTO) => {
     if (tags) {
       tags = normalizeTagsToSlug(tags);
     }
-    await _product.create({
+    const product = await _product.create({
       name,
       ...other,
       slug,
@@ -19,6 +30,7 @@ export const createProductService = async (data: ProductRequestDTO) => {
     return {
       status: StatusCodes.CREATED,
       message: "Tạo sản phẩm thành công",
+      product,
     };
   } catch (error: any) {
     console.error(error);
@@ -60,8 +72,14 @@ export const getAllProductService = async (
       max_price,
       tags,
       category,
+      sort,
+      search,
     } = data;
     let query: any = {};
+
+    if (search) {
+      query.name = { $regex: `^${search}`, $options: "i" };
+    }
 
     if (tags) {
       query.tags = {
@@ -75,6 +93,26 @@ export const getAllProductService = async (
         { price: { $lte: max_price } },
       ];
     }
+
+    const getSortObject = (sortType: SortType | string): SortObject => {
+      switch (sortType) {
+        case "price_asc":
+          return { price: 1 };
+        case "price_desc":
+          return { price: -1 };
+        case "name_asc":
+          return { name: 1 };
+        case "name_desc":
+          return { name: -1 };
+        case "newest":
+          return { createdAt: 1 };
+        case "oldest":
+          return { createdAt: 1 };
+        default:
+          return { createdAt: -1 };
+      }
+    };
+
     const skip = (page - 1) * pageSize;
     const totalItem = await _product.countDocuments();
     const totalPage = Math.ceil(totalItem / pageSize);
@@ -82,6 +120,7 @@ export const getAllProductService = async (
       .find(query)
       .skip(skip)
       .limit(pageSize)
+      .sort(getSortObject(sort || "newest"))
       .lean();
     return {
       status: StatusCodes.OK,

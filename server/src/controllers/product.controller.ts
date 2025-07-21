@@ -26,8 +26,8 @@ export const createProductController = async (
       image,
       category,
     };
-    const { status, message } = await createProductService(data);
-    res.status(status).json({ status, message });
+    const { status, message, product } = await createProductService(data);
+    res.status(status).json({ status, message, product });
   } catch (error: any) {
     console.error(error);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
@@ -68,6 +68,8 @@ export const getAllProductController = async (
       max_price,
       tags,
       category,
+      sort,
+      search,
     } = req.query;
     const data = {
       page: +page,
@@ -76,6 +78,8 @@ export const getAllProductController = async (
       max_price,
       tags,
       category,
+      sort,
+      search,
     };
     const { status, element } = await getAllProductService(data);
     res.status(status).json({
