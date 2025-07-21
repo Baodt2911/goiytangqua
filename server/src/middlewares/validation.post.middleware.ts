@@ -31,7 +31,7 @@ export const validatePostRequest = (
     if (!isValid) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         status: StatusCodes.BAD_REQUEST,
-        message: "id không hợp lệ",
+        message: "id product không hợp lệ",
       });
     }
   }
