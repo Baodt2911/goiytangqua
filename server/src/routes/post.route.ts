@@ -26,7 +26,7 @@ router.post(
   createCommentController
 );
 router.post("/create", verifyAdmin, validatePostRequest, createPostController);
-router.post(
+router.patch(
   "/update/:id",
   verifyAdmin,
   validateObjectIdRequest,

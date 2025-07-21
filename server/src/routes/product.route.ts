@@ -21,7 +21,7 @@ router.post(
   validateProductRequest,
   createProductController
 );
-router.post(
+router.patch(
   "/update/:id",
   verifyAdmin,
   validateObjectIdRequest,
