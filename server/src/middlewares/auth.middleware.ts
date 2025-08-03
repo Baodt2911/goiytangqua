@@ -194,3 +194,33 @@ export const verifyAdmin = async (
     });
   }
 };
+export const authOptional = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const { authorization } = req.headers;
+
+  if (authorization?.startsWith("Bearer ")) {
+    const accessToken = authorization.split(" ")[1];
+    try {
+      const secretKey = process.env.ACCESSTOKEN_KEY;
+      if (!secretKey) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+          status: StatusCodes.INTERNAL_SERVER_ERROR,
+          message: "ACCESSTOKEN_KEY chưa được cấu hình",
+        });
+        return;
+      }
+
+      const decoded = jwt.verify(accessToken, secretKey);
+      req.user = decoded;
+    } catch (err) {
+      req.user = undefined;
+    }
+  } else {
+    req.user = undefined;
+  }
+
+  next();
+};
