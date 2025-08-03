@@ -1,31 +1,58 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { PostType } from "../../types/post.stype";
 type PostState = {
-  title: string;
-  content: string;
-  slug: string;
-  filters: Record<string, string>;
-  products: string[];
-  tags: string[];
+  posts: PostType[];
+  loading: boolean;
+  error: string | null;
 };
 const initialState: PostState = {
-  title: "",
-  content: "",
-  slug: "",
-  filters: {},
-  products: [],
-  tags: [],
+  posts: [],
+  loading: false,
+  error: null,
 };
 const postSlice = createSlice({
   name: "post",
   initialState,
   reducers: {
-    setDataPost: (state, action: PayloadAction<Partial<PostState>>) => {
-      return {
-        ...state,
-        ...action.payload,
-      };
+    // GET
+    getPostsStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    getPostsSuccess: (state, action: PayloadAction<PostType[]>) => {
+      state.posts = action.payload;
+      state.loading = false;
+    },
+    getPostsFailure: (state, action: PayloadAction<string>) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+
+    // CREATE
+    createPost: (state, action: PayloadAction<PostType>) => {
+      state.posts.push(action.payload);
+    },
+
+    // UPDATE
+    updatePost: (state, action: PayloadAction<PostType>) => {
+      const index = state.posts.findIndex((p) => p._id === action.payload._id);
+      if (index !== -1) {
+        state.posts[index] = action.payload;
+      }
+    },
+
+    // DELETE
+    deletePost: (state, action: PayloadAction<string>) => {
+      state.posts = state.posts.filter((p) => p._id !== action.payload);
     },
   },
 });
-export const { setDataPost } = postSlice.actions;
+export const {
+  getPostsStart,
+  getPostsSuccess,
+  getPostsFailure,
+  createPost,
+  updatePost,
+  deletePost,
+} = postSlice.actions;
 export default postSlice.reducer;

@@ -1,34 +1,22 @@
 import React from "react";
 import { Editor } from "@tinymce/tinymce-react";
-import axios from "axios";
 import { useAppDispatch, useAppSelector } from "../../app/hook";
+import { setPost } from "../../features/post/selectedPost.slice";
+import { uploadImage } from "../../features/image/image.service";
 import { RootState } from "../../app/store";
-import { setDataPost } from "../../features/post/post.slice";
-const URL_API: string = import.meta.env.VITE_URL_API;
 
 const Editors: React.FC = () => {
-  const accessToken = useAppSelector(
-    (state: RootState) => state.auth.accessToken
-  );
+  const selectedPost = useAppSelector((state: RootState) => state.selectedPost);
   const dispatch = useAppDispatch();
   const handleUploadImage = (blobInfo: any) => {
     return new Promise((resolve: any, reject: any) => {
       const file = blobInfo.blob();
       const formData = new FormData();
       formData.append("image", file);
-      axios
-        .post(`${URL_API}/image/upload`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          responseType: "json",
-        })
-        .then((res) => {
-          if (res && res.data) {
-            const imageUrl = res.data.url;
-            resolve(imageUrl);
-          }
+
+      uploadImage(formData)
+        .then(({ url }) => {
+          resolve(url);
         })
         .catch((error: any) => {
           reject(error.message || "Lỗi upload ảnh!");
@@ -36,13 +24,13 @@ const Editors: React.FC = () => {
     });
   };
   const handleEditorChange = (content: string) => {
-    dispatch(setDataPost({ content }));
+    dispatch(setPost({ content }));
   };
   return (
     <Editor
       apiKey={import.meta.env.VITE_API_KEY_TINYMCE}
       init={{
-        height: "500px",
+        height: "700px",
         language: "vi",
         plugins:
           "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount",
@@ -60,7 +48,7 @@ const Editors: React.FC = () => {
         //   ),
         images_upload_handler: handleUploadImage,
       }}
-      initialValue=""
+      initialValue={selectedPost.content}
       onEditorChange={handleEditorChange}
     />
   );

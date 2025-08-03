@@ -1,18 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BookOutlined,
   FilterOutlined,
   HomeOutlined,
   ProductOutlined,
-  TeamOutlined,
+  LoginOutlined,
+  OpenAIOutlined,
 } from "@ant-design/icons";
 import mainLogo from "../../assets/logos/logo-light.png";
 import subLogo from "../../assets/logos/favicon_io_light/favicon-32x32.png";
 import type { MenuProps } from "antd";
-import { Layout, Menu } from "antd";
-import { Outlet } from "react-router-dom";
+import { Button, Layout, Menu, Typography } from "antd";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../app/hook";
+import { logout } from "../../features/auth/auth.slice";
+import { RootState } from "../../app/store";
 const { Content, Footer, Sider } = Layout;
-
+const { Text } = Typography;
 type MenuItem = Required<MenuProps>["items"][number];
 
 function getItem(
@@ -35,26 +39,49 @@ const items: MenuItem[] = [
     getItem("Viết bài", "writing"),
     getItem("Danh sách bài viết", "list-article"),
   ]),
-  getItem("Sản phẩm", "product", <ProductOutlined />, [
-    getItem("Thêm sản phẩm", "add-product"),
-    getItem("Danh sách sản phẩm", "list-product"),
-  ]),
-  getItem("Team", "sub2", <TeamOutlined />, [
-    getItem("Team 1", "6"),
-    getItem("Team 2", "8"),
-  ]),
-  getItem("Bộ lọc", "filters", <FilterOutlined />),
+  getItem("Sản phẩm", "product", <ProductOutlined />),
+  getItem("Bộ lọc", "filter", <FilterOutlined />),
+  getItem("AI Prompt", "ai-prompt", <OpenAIOutlined />),
 ];
 
+const siderStyle: React.CSSProperties = {
+  overflow: "auto",
+  height: "100vh",
+  position: "sticky",
+  insetInlineStart: 0,
+  top: 0,
+  bottom: 0,
+  scrollbarWidth: "thin",
+  scrollbarGutter: "stable",
+};
+
 const MainLayout: React.FC = () => {
+  const location = useLocation();
+  const [selectedKey, setSelectedKey] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
+  const isAuthenticated = useAppSelector(
+    (state: RootState) => state.auth.isAuthenticated
+  );
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/auth/login");
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const path = location.pathname.split("/")[1];
+    setSelectedKey(path || "dashboard");
+  }, [location.pathname]);
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider
         collapsible
         collapsed={collapsed}
         onCollapse={(value) => setCollapsed(value)}
-        style={{ width: 500 }}
+        style={siderStyle}
       >
         <div
           style={{
@@ -72,16 +99,62 @@ const MainLayout: React.FC = () => {
         </div>
         <Menu
           theme="dark"
-          defaultSelectedKeys={["1"]}
           mode="inline"
           items={items}
+          selectedKeys={[selectedKey]}
+          onClick={({ key }) => {
+            switch (key) {
+              case "dashboard":
+                setSelectedKey(key);
+                navigate("/dashboard");
+                break;
+              case "writing":
+                setSelectedKey(key);
+                navigate("/article/writing");
+                break;
+              case "list-article":
+                setSelectedKey(key);
+                navigate("/article/list-article");
+                break;
+              case "filter":
+                setSelectedKey(key);
+                navigate("filter");
+                break;
+              case "product":
+                setSelectedKey(key);
+                navigate("product");
+                break;
+              case "ai-prompt":
+                setSelectedKey(key);
+                navigate("ai-prompt");
+                break;
+              default:
+                break;
+            }
+          }}
         />
+        <Button
+          type="text"
+          style={{
+            position: "absolute",
+            bottom: 70,
+            width: "100%",
+            textAlign: "center",
+          }}
+          onClick={() => dispatch(logout())}
+        >
+          {collapsed ? (
+            <LoginOutlined style={{ color: "white" }} />
+          ) : (
+            <Text style={{ fontSize: 16, color: "red" }}>Đăng xuất</Text>
+          )}
+        </Button>
       </Sider>
-      <Layout>
-        <Content style={{ margin: "0 16px" }}>
+      <Layout style={{ background: "#fff" }}>
+        <Content style={{ margin: "0 16px", background: "#fff", padding: 25 }}>
           <Outlet />
         </Content>
-        <Footer style={{ textAlign: "center" }}>
+        <Footer style={{ textAlign: "center", background: "#fff" }}>
           Goiytangqua ©{new Date().getFullYear()} created by <b>baodt2911</b>
         </Footer>
       </Layout>

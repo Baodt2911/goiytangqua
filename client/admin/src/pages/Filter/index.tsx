@@ -13,10 +13,10 @@ import {
   Select,
 } from "antd";
 import {
-  getFilters,
-  addFilter,
-  deleteFilter,
-  updateFilter,
+  getFiltersAsync,
+  addFilterAsync,
+  deleteFilterAsync,
+  updateFilterAsync,
 } from "../../features/filter/filter.service";
 
 const { Title } = Typography;
@@ -38,7 +38,7 @@ const Filter: React.FC = () => {
   const fetchFilters = async () => {
     setLoading(true);
     try {
-      const data = await getFilters();
+      const data = await getFiltersAsync();
       let arr: any = [];
       if (Array.isArray(data)) arr = data;
       else if (Array.isArray(data.data)) arr = data.data;
@@ -81,7 +81,7 @@ const Filter: React.FC = () => {
     if (!id) return;
     setLoading(true);
     try {
-      await deleteFilter(id);
+      await deleteFilterAsync(id);
       message.success("Đã xóa filter");
       fetchFilters();
     } catch {
@@ -106,10 +106,10 @@ const Filter: React.FC = () => {
     };
     try {
       if (editing && editing._id) {
-        await updateFilter(editing._id, payload);
+        await updateFilterAsync(editing._id, payload);
         message.success("Đã cập nhật filter");
       } else {
-        await addFilter(payload);
+        await addFilterAsync(payload);
         message.success("Đã thêm filter");
       }
       setModalOpen(false);

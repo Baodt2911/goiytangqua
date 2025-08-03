@@ -43,6 +43,8 @@ const AppHeader: React.FC = () => {
   console.log(theme);
 
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  console.log(isAuthenticated);
+
   const items: MenuItem[] = [
     {
       label: "Trang chủ",
