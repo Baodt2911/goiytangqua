@@ -9,4 +9,6 @@ export type getAllProductRequestQueryDTO = {
   max_price: number;
   tags: string;
   category: string;
+  sort: string;
+  search: string;
 };
