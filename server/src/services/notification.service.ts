@@ -2,8 +2,8 @@ import { getRelationshipsWithAnniversaryToday } from "src/services";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { NotificationRequestDTO } from "src/dtos";
 import { _notification } from "src/models";
-import { modelGemini } from "src/configs";
 import { io } from "src/server";
+import { callAIWithPrompt } from "src/utils/AI_service";
 
 export const createNotificationService = async (
   data: NotificationRequestDTO
@@ -73,6 +73,7 @@ export const sendNotificationService = async () => {
       day,
       month
     );
+
     for (const data of exitstingAnniversaries) {
       for (const item of data.anniversaries) {
         if (item.date.day === day && item.date.month === month) {
@@ -91,13 +92,16 @@ export const sendNotificationService = async () => {
             }
           )}. Tôi chỉ cần 1 thông báo duy nhất. Loại bỏ những thông tin không cần thiết, viết các thông báo trông bắt mắt, có hồn hơn, thêm các icon cần thiết, tối đa 2 icon. Đây chỉ là thông báo nhắc nhờ tôi`;
 
-          const result = await modelGemini.generateContent(prompt);
+          const result = await callAIWithPrompt(
+            { aiProvider: "gemini", aiModel: "gemini-1.5-flash" },
+            prompt
+          );
 
           const titleRegex = /"title": "(.*?)"/;
           const messageRegex = /"message": "(.*?)"/;
 
-          const titleMatch = result.response.text().match(titleRegex);
-          const messageMatch = result.response.text().match(messageRegex);
+          const titleMatch = (result as string).match(titleRegex);
+          const messageMatch = (result as string).match(messageRegex);
 
           const title = titleMatch ? titleMatch[1] : "";
           const message = messageMatch ? messageMatch[1] : "";
