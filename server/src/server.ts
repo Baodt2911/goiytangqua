@@ -21,17 +21,21 @@ import {
   userRouter,
   authRouter,
   imageRouter,
+  aiPromptRouter,
+  contentScheduleRouter,
 } from "./routes";
 import passport from "passport";
-import { scheduleAnniversaries } from "./schedules";
+import scheduleAnniversaries from "./schedules/anniversary";
+import scheduleGenerateContent from "./schedules/content";
 
 dotenv.config();
 
 const app: Application = express();
 const server = http.createServer(app);
+const WHITELIST_DOMAINS = ["http://localhost:5174", "http://localhost:5173"];
 export const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: WHITELIST_DOMAINS,
   },
 });
 const PORT = process.env.PORT || 5000;
@@ -55,6 +59,7 @@ app.use(
     }),
   })
 );
+app.set("trust proxy", true);
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.json());
@@ -63,13 +68,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: process.env.URL_CLIENT,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: WHITELIST_DOMAINS,
+    // methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
 // scheduleAnniversaries.start();
+// scheduleGenerateContent.start();
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello, world!");
@@ -85,6 +91,8 @@ app.use("/notification", notificationRouter);
 app.use("/filter", filterRouter);
 app.use("/otp", otpRouter);
 app.use("/relationship", relationshipRouter);
+app.use("/prompt", aiPromptRouter);
+app.use("/content-schedule", contentScheduleRouter);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(StatusCodes.NOT_FOUND).json({

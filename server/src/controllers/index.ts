@@ -8,3 +8,5 @@ export * from "./post.controller";
 export * from "./comment.controller";
 export * from "./filter.controller";
 export * from "./notification.controller";
+export * from "./ai_prompt.controller";
+export * from "./content_schedule.controller";

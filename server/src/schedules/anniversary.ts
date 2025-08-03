@@ -1,5 +1,5 @@
-import { sendNotificationService } from "src/services";
 import cron from "node-cron";
+import { sendNotificationService } from "src/services";
 import { _relationship } from "src/models";
 
 const scheduleAnniversaries = cron.schedule("*/2 * * * *", async () => {
@@ -11,4 +11,4 @@ const scheduleAnniversaries = cron.schedule("*/2 * * * *", async () => {
     console.error("Lỗi khi chạy cron job:", error);
   }
 });
-export { scheduleAnniversaries };
+export default scheduleAnniversaries;

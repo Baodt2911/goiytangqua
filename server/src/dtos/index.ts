@@ -5,3 +5,5 @@ export * from "./post.dto";
 export * from "./comment.dto";
 export * from "./filter.dto";
 export * from "./notification.dto";
+export * from "./ai_prompt.dto";
+export * from "./content_schedule.dto";

@@ -9,3 +9,5 @@ export { default as otpRouter } from "./otp.route";
 export { default as relationshipRouter } from "./relationship.route";
 export { default as authRouter } from "./auth.route";
 export { default as imageRouter } from "./image.route";
+export { default as aiPromptRouter } from "./ai_prompt.route";
+export { default as contentScheduleRouter } from "./content_schedule.route";
