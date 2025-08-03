@@ -7,3 +7,5 @@ export { default as _notification } from "./notification.model";
 export { default as _relationship } from "./relationship.model";
 export { default as _product } from "./product.model";
 export { default as _otp } from "./otp.model";
+export { default as _aiPrompt } from "./ai_prompt.model";
+export { default as _contentSchedule } from "./content_schedule.model";

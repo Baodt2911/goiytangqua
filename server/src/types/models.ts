@@ -12,11 +12,62 @@ export type User = Document & {
 };
 export type Post = Document & {
   title: string;
+  thumbnail?: string;
   slug: string;
   content: string;
   tags?: string[];
   filters?: Record<string, string>;
   products?: ObjectId[];
+  status: "draft" | "published" | "scheduled";
+  publishedAt?: Date;
+  scheduledFor?: Date;
+  views: number;
+  isFeatured: boolean;
+  author: string;
+  generatedBy: "human" | "ai" | "hybrid";
+  aiPromptId?: ObjectId;
+};
+
+export type AIPrompt = Document & {
+  name: string; // "Daily Tech News", "Product Review"
+  promptTemplate: string; // The actual prompt for AI
+  description?: string;
+
+  // AI settings
+  aiProvider: "openai" | "claude" | "gemini";
+  aiModel: string; // "gpt-4", "claude-3-sonnet"
+  temperature: number; // Creativity 0-1
+  maxTokens: number; // Response length
+
+  systemMessage?: string;
+
+  // Content defaults
+  categories?: ("chatbot" | "gift" | "notification" | "article")[];
+  defaultTags: string[]; // Auto-applied tags
+  targetWordCount: number; // Desired length
+
+  availableVariables?: string[]; // ["gender", "age", "relation"]
+  // Status
+  isActive: boolean;
+};
+
+// 3. Content Schedule - Automation timing
+export type ContentSchedule = Document & {
+  name: string; // "Daily Morning Post"
+  aiPromptId: ObjectId; // Which prompt to use
+
+  // Timing
+  frequency: "once" | "daily" | "weekly" | "monthly";
+  scheduleTime: string; // "08:00" or "Mon-08:00"
+  nextRunAt: Date; // Next execution
+
+  // Auto-publish settings
+  autoPublish: boolean; // Publish immediately or draft
+
+  // Status & tracking
+  status: "active" | "paused" | "completed";
+  lastRunAt?: Date;
+  totalRuns: number;
 };
 export type Comment = Document & {
   content: string;
