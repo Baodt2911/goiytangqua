@@ -6,9 +6,11 @@ import {
   getAllPostsController,
   getCommentsController,
   getPostController,
+  increaseViewController,
   updatePostController,
 } from "src/controllers";
 import {
+  authOptional,
   validateObjectIdRequest,
   validatePostRequest,
   validateUpdatePostRequest,
@@ -17,7 +19,8 @@ import {
 } from "src/middlewares";
 const router: Router = Router();
 router.get("/slug/:slug", getPostController);
-router.get("/all", getAllPostsController);
+router.post("/slug/:slug/view", authOptional, increaseViewController);
+router.get("/all", authOptional, getAllPostsController);
 router.get("/:id/comments", validateObjectIdRequest, getCommentsController);
 router.post(
   "/:id/comments",

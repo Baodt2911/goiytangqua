@@ -1,6 +1,11 @@
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import slugify from "slugify";
-import { getAllPostRequestQueryDTO, PostRequestDTO } from "src/dtos";
+import redis from "src/configs/redis.cofig";
+import {
+  getAllPostRequestQueryDTO,
+  PostRequestDTO,
+  UpdatePostRequestDTO,
+} from "src/dtos";
 import { _post } from "src/models";
 import { normalizeTagsToSlug } from "src/utils";
 
@@ -11,6 +16,13 @@ export const createPostService = async (data: PostRequestDTO) => {
     slug = slugify(slug, { lower: true, strict: true, locale: "vi" });
     if (tags) {
       tags = normalizeTagsToSlug(tags);
+    }
+    const isSlug = await _post.findOne({ slug });
+    if (!isSlug) {
+      return {
+        status: StatusCodes.CONFLICT,
+        message: "Slug đã tốn tại",
+      };
     }
     await _post.create({
       ...other,
@@ -45,13 +57,21 @@ export const getPostService = async (slug: string) => {
   }
 };
 export const getAllPostsService = async (
+  viewer: any,
   filters: Record<string, string>,
   data: Partial<getAllPostRequestQueryDTO>
 ) => {
   try {
-    const { page = 1, pageSize = 10, tags } = data;
+    const { page = 1, pageSize = 10, search, tags } = data;
     let query: any = {};
 
+    if (!viewer || viewer.role !== "admin") {
+      query.status = "published";
+    }
+
+    if (search) {
+      query.title = { $regex: `^${search}`, $options: "i" };
+    }
     if (tags) {
       query.tags = {
         $in: tags.split(","),
@@ -62,19 +82,27 @@ export const getAllPostsService = async (
         [`filters.${key}`]: value,
       }));
     }
-    console.log(query);
 
     const skip = (page - 1) * pageSize;
     const totalItem = await _post.countDocuments();
     const totalPage = Math.ceil(totalItem / pageSize);
-    const existingProduct = await _post
+    let existingPosts = await _post
       .find(query)
       .skip(skip)
       .limit(pageSize)
+      .sort(viewer?.role === "admin" ? { createdAt: -1 } : { publishedAt: -1 })
+      .select(
+        viewer?.role === "admin"
+          ? ""
+          : "-status -publishedAt -scheduledFor -views -generatedBy -aiPromptId"
+      )
       .lean();
+
+    if (!viewer || viewer.role !== "admin") {
+    }
     return {
       status: StatusCodes.OK,
-      element: { products: existingProduct, currentPage: page, totalPage },
+      element: { posts: existingPosts, currentPage: page, totalPage },
     };
   } catch (error: any) {
     console.error(error);
@@ -83,23 +111,45 @@ export const getAllPostsService = async (
 };
 export const updatePostService = async (
   id: string,
-  data: Partial<PostRequestDTO>
+  data: Partial<UpdatePostRequestDTO>
 ) => {
   try {
-    let { title, content, tags, slug, filters, products } = data;
+    let {
+      title,
+      thumbnail,
+      slug,
+      content,
+      tags,
+      filters,
+      products,
+      status,
+      publishedAt,
+      scheduledFor,
+      isFeatured,
+      author,
+      aiPromptId,
+    } = data;
     if (tags) {
       tags = normalizeTagsToSlug(tags);
     }
     if (slug) {
       slug = slugify(slug, { lower: true, strict: true, locale: "vi" });
     }
-    let updateFields: Partial<PostRequestDTO> = {};
+    let updateFields: Partial<UpdatePostRequestDTO> = {};
     if (title) updateFields.title = title;
+    if (thumbnail) updateFields.thumbnail = thumbnail;
     if (content) updateFields.content = content;
     if (tags) updateFields.tags = tags;
     if (slug) updateFields.slug = slug;
     if (filters) updateFields.filters = filters;
     if (products) updateFields.products = products;
+    if (status) updateFields.status = status;
+    if (publishedAt) updateFields.publishedAt = publishedAt;
+    if (scheduledFor) updateFields.scheduledFor = scheduledFor;
+    if (isFeatured) updateFields.isFeatured = isFeatured;
+    if (author) updateFields.author = author;
+    if (aiPromptId) updateFields.aiPromptId = aiPromptId;
+
     const isUpdated = await _post.findByIdAndUpdate(id, {
       $set: updateFields,
     });
@@ -112,6 +162,34 @@ export const updatePostService = async (
     return {
       status: StatusCodes.OK,
       message: "Cập nhật bài viết thành công",
+    };
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
+export const increaseViewService = async (
+  slug: string,
+  user: any,
+  ip: string | undefined
+) => {
+  try {
+    const existingPosts = await _post.findOne({ slug });
+    if (!existingPosts) {
+      return {
+        status: StatusCodes.NOT_FOUND,
+        message: "Bài viết không tồn tại hoặc đã bị xóa",
+      };
+    }
+    const key = `view:${slug}:${user?.userId || ip}`;
+
+    const viewed = await redis.get(key);
+    if (!viewed) {
+      await _post.findOneAndUpdate({ slug }, { $inc: { views: 1 } });
+      await redis.set(key, "1", "EX", 60 * 10); // 10 phút
+    }
+    return {
+      status: StatusCodes.OK,
     };
   } catch (error: any) {
     console.error(error);
