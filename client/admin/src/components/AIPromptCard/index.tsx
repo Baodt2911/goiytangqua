@@ -8,75 +8,103 @@ import {
   Button,
   Popconfirm,
   Tooltip,
+  message,
+  Flex,
 } from "antd";
 import {
-  RobotOutlined,
   ClockCircleOutlined,
   EditOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
+import { AIPrompt } from "../../types/ai_prompt.type";
+import { useAppDispatch } from "../../app/hook";
+import {
+  deletePrompt,
+  updatePrompt,
+} from "../../features/ai_prompt/ai_prompt.slice";
+import {
+  changeActivePromptAsync,
+  deletePromptAsync,
+} from "../../features/ai_prompt/ai_prompt.service";
+import { setPrompt } from "../../features/ai_prompt/selectedAIPrompt.slice";
 
 const { Text, Title, Paragraph } = Typography;
 
-interface AIPromptCardProps {
-  data: {
-    name: string;
-    promptTemplate: string;
-    description?: string;
-    aiProvider: "openai" | "claude" | "gemini";
-    aiModel: string;
-    temperature: number;
-    maxTokens: number;
-    systemMessage?: string;
-    categories?: ("chatbot" | "gift" | "notification" | "article")[];
-    defaultTags: string[];
-    targetWordCount: number;
-    availableVariables?: string[];
-    isActive: boolean;
-  };
-  onSchedule?: () => void;
-  onOpenModalEdit: () => void;
-}
+type AIPromptCardProps = AIPrompt;
+const getProviderColor = (provider: string | undefined) => {
+  switch (provider) {
+    case "openai":
+      return "green";
+    case "claude":
+      return "blue";
+    case "gemini":
+      return "purple";
+    default:
+      return "default";
+  }
+};
 
-const AIPromptCard: React.FC<AIPromptCardProps> = ({
-  data,
-  onSchedule,
-  onOpenModalEdit,
-}) => {
-  const getProviderColor = (provider: string) => {
-    switch (provider) {
-      case "openai":
-        return "green";
-      case "claude":
-        return "blue";
-      case "gemini":
-        return "purple";
-      default:
-        return "default";
+const getCategoryColor = (category: string | undefined) => {
+  switch (category) {
+    case "chatbot":
+      return "green";
+    case "gift":
+      return "pink";
+    case "notification":
+      return "purple";
+    case "article":
+      return "orange";
+    default:
+      return "default";
+  }
+};
+
+const AIPromptCard: React.FC<
+  AIPromptCardProps & {
+    onOpenModalEdit: () => void;
+    onOpenModalSchedule: (aiPromptId: string) => void;
+  }
+> = (data) => {
+  const { onOpenModalSchedule, onOpenModalEdit, ...promptProps } = data;
+  const dispatch = useAppDispatch();
+  const handleChangeActive = async (value: boolean) => {
+    try {
+      dispatch(updatePrompt({ ...promptProps, isActive: value }));
+      const data = await changeActivePromptAsync(
+        promptProps._id as string,
+        value
+      );
+      if (data.status >= 400) {
+        return message.warning(data.message);
+      }
+      message.success(data.message);
+    } catch (error: any) {
+      console.log(error.message);
+      message.error(error.message);
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "chatbot":
-        return "green";
-      case "gift":
-        return "pink";
-      case "notification":
-        return "purple";
-      case "article":
-        return "orange";
-      default:
-        return "default";
+  const handleDeletePrompt = async (id: string) => {
+    try {
+      dispatch(deletePrompt(id));
+      const data = await deletePromptAsync(id);
+      if (data.status >= 400) {
+        return message.warning(data.message);
+      }
+      message.success(data.message);
+    } catch (error: any) {
+      console.log(error.message);
+      message.error(error.message);
     }
   };
-
   return (
     <Card
       hoverable={true}
       style={{
-        width: "500px",
-        borderLeft: data.isActive ? "4px solid #52c41a" : "4px solid #d9d9d9",
+        borderLeft: promptProps.isActive
+          ? "4px solid #52c41a"
+          : "4px solid #d9d9d9",
+        boxShadow: "0 0 5px 5px #eeeeee",
       }}
     >
       {/* Header with title and actions */}
@@ -88,21 +116,18 @@ const AIPromptCard: React.FC<AIPromptCardProps> = ({
           marginBottom: 16,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
-          <RobotOutlined style={{ color: "#1890ff", fontSize: 18 }} />
-          <Title level={4} style={{ margin: 0, fontWeight: "bold" }}>
-            {data.name}
-          </Title>
-        </div>
-
+        <Title level={4} style={{ fontWeight: 500 }}>
+          {promptProps.name}
+        </Title>
         {/* Action buttons */}
         <Space size={8}>
           <Tooltip title="Lịch trình" placement="bottom">
             <Button
+              disabled={!promptProps.isActive}
               type="text"
               icon={<ClockCircleOutlined />}
               size="small"
-              onClick={onSchedule}
+              onClick={() => onOpenModalSchedule(promptProps._id as string)}
             />
           </Tooltip>
           <Tooltip title="Sửa" placement="bottom">
@@ -110,13 +135,16 @@ const AIPromptCard: React.FC<AIPromptCardProps> = ({
               type="text"
               icon={<EditOutlined />}
               size="small"
-              onClick={onOpenModalEdit}
+              onClick={() => {
+                dispatch(setPrompt(promptProps));
+                onOpenModalEdit();
+              }}
             />
           </Tooltip>
           <Tooltip title="Xóa" placement="bottom">
             <Popconfirm
               title="Bạn có chắc muốn xoá prompt này?"
-              onConfirm={() => {}}
+              onConfirm={() => handleDeletePrompt(promptProps._id as string)}
               okText="Xóa"
               cancelText="Hủy"
             >
@@ -133,22 +161,26 @@ const AIPromptCard: React.FC<AIPromptCardProps> = ({
       {/* Provider and Model */}
       <div style={{ marginBottom: 12 }}>
         <Tag
-          color={getProviderColor(data.aiProvider)}
+          color={getProviderColor(promptProps.aiProvider)}
           style={{ fontWeight: "bold" }}
         >
-          {data.aiProvider} - {data.aiModel}
+          {promptProps.aiProvider} - {promptProps.aiModel}
         </Tag>
-        {!data.isActive && (
-          <Text type="secondary" style={{ marginLeft: 8 }}>
-            Inactive
-          </Text>
-        )}
       </div>
 
-      {/* Description */}
-      {data.description && (
+      {/* SystemMessage */}
+      {promptProps.systemMessage && (
         <div style={{ marginBottom: 16 }}>
-          <Text type="secondary">{data.description}</Text>
+          <Text code>{promptProps.systemMessage}</Text>
+        </div>
+      )}
+
+      {/* Description */}
+      {promptProps.description && (
+        <div style={{ marginBottom: 16 }}>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {promptProps.description}
+          </Text>
         </div>
       )}
 
@@ -174,9 +206,9 @@ const AIPromptCard: React.FC<AIPromptCardProps> = ({
             type="secondary"
             style={{ fontSize: 12, fontFamily: "monospace" }}
           >
-            {data.promptTemplate.length > 150
-              ? `${data.promptTemplate.substring(0, 150)}... Show more →`
-              : data.promptTemplate}
+            {promptProps.promptTemplate.length > 150
+              ? `${promptProps.promptTemplate.substring(0, 150)}... Show more →`
+              : promptProps.promptTemplate}
           </Paragraph>
         </div>
       </div>
@@ -193,7 +225,7 @@ const AIPromptCard: React.FC<AIPromptCardProps> = ({
           </Text>
           <div>
             <Text type="warning" strong>
-              {data.temperature}
+              {promptProps.temperature}
             </Text>
           </div>
         </Card>
@@ -207,53 +239,54 @@ const AIPromptCard: React.FC<AIPromptCardProps> = ({
           </Text>
           <div>
             <Text type="success" strong>
-              {data.maxTokens}
+              {promptProps.maxTokens}
             </Text>
           </div>
         </Card>
       </div>
 
       {/* Categories */}
-      {data.categories && data.categories.length > 0 && (
-        <div style={{ marginBottom: 12 }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            Categories:{" "}
-            {data.categories.map((cat) => (
-              <Tag key={cat} color={getCategoryColor(cat)}>
-                {cat}
-              </Tag>
-            ))}
+      {promptProps.categories && promptProps.categories.length > 0 && (
+        <Flex gap={5} wrap style={{ marginBottom: 12 }}>
+          <Text type="secondary" style={{ marginRight: 5, fontSize: 12 }}>
+            Thể loại:
           </Text>
-        </div>
+          {promptProps.categories.map((cat) => (
+            <Tag key={cat} color={getCategoryColor(cat)}>
+              {cat}
+            </Tag>
+          ))}
+        </Flex>
       )}
 
       {/* Tags */}
-      {data.defaultTags.length > 0 && (
-        <div style={{ marginBottom: 12 }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            Tags:{" "}
-            {data.defaultTags.map((tag) => (
-              <Tag key={tag} color="blue">
-                {tag}
-              </Tag>
-            ))}
+      {promptProps.defaultTags.length > 0 && (
+        <Flex gap={5} wrap style={{ marginBottom: 12 }}>
+          <Text type="secondary" style={{ marginRight: 5, fontSize: 12 }}>
+            Tags:
           </Text>
-        </div>
+          {promptProps.defaultTags.map((tag) => (
+            <Tag key={tag} color="blue">
+              {tag}
+            </Tag>
+          ))}
+        </Flex>
       )}
 
       {/* Variables */}
-      {data.availableVariables && data.availableVariables.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            Variables:{" "}
-            {data.availableVariables.map((variable) => (
+      {promptProps.availableVariables &&
+        promptProps.availableVariables.length > 0 && (
+          <Flex gap={5} wrap style={{ marginBottom: 12 }}>
+            <Text type="secondary" style={{ marginRight: 5, fontSize: 12 }}>
+              Variables:
+            </Text>
+            {promptProps.availableVariables.map((variable) => (
               <Tag key={variable} color="orange">
                 {`{${variable}}`}
               </Tag>
             ))}
-          </Text>
-        </div>
-      )}
+          </Flex>
+        )}
 
       {/* Footer */}
       <div
@@ -264,13 +297,18 @@ const AIPromptCard: React.FC<AIPromptCardProps> = ({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Switch checked={data.isActive} onChange={() => {}} size="small" />
+          <Switch
+            checked={promptProps.isActive}
+            onChange={handleChangeActive}
+            size="small"
+          />
           <Text type="secondary" style={{ fontSize: 12 }}>
-            {data.isActive ? "Active" : "Inactive"}
+            {promptProps.isActive ? "Hoạt động" : "Đã tắt"}
           </Text>
         </div>
         <Text type="secondary" style={{ fontSize: 12 }}>
-          Cập nhật: {new Date().toLocaleDateString("vi-VN")}
+          <span style={{ marginRight: 5 }}>Cập nhật:</span>
+          {new Date(promptProps.updatedAt as Date).toLocaleDateString("vi-VN")}
         </Text>
       </div>
     </Card>

@@ -58,7 +58,7 @@ const siderStyle: React.CSSProperties = {
 const MainLayout: React.FC = () => {
   const location = useLocation();
   const [selectedKey, setSelectedKey] = useState("dashboard");
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const isAuthenticated = useAppSelector(
     (state: RootState) => state.auth.isAuthenticated
   );

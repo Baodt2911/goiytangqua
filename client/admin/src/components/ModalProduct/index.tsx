@@ -35,9 +35,10 @@ const ModalProduct: React.FC<ModalProductProps> = ({ open, onCancel }) => {
   const dispatch = useAppDispatch();
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
   const [products, setProducts] = useState<ProductType[]>([]);
-  const [selectedProducts, setSelectedProducts] = useState<ProductType[]>(
+  const [selectedProducts, setSelectedProducts] = useState<string[]>(
     selectedPost.products
   );
+
   const [filterSelection, setFilterSelection] = useState<
     "all" | "selected" | "unselected"
   >("all");
@@ -67,11 +68,11 @@ const ModalProduct: React.FC<ModalProductProps> = ({ open, onCancel }) => {
   }, [selectedPost.products]);
 
   const handleProductToggle = (product: ProductType) => {
-    const isSelected = selectedProducts.some((p) => p._id === product._id);
+    const isSelected = selectedProducts.some((_id) => _id === product._id);
     if (isSelected) {
-      setSelectedProducts((prev) => prev.filter((p) => p._id !== product._id));
+      setSelectedProducts((prev) => prev.filter((_id) => _id !== product._id));
     } else {
-      setSelectedProducts((prev) => [...prev, product]);
+      setSelectedProducts((prev) => [...prev, product._id]);
     }
   };
 
@@ -80,8 +81,8 @@ const ModalProduct: React.FC<ModalProductProps> = ({ open, onCancel }) => {
       // Thêm tất cả products hiện tại vào selectedProducts (không trùng lặp)
       const newSelected = [...selectedProducts];
       filteredProducts.forEach((product) => {
-        if (!newSelected.some((p) => p._id === product._id)) {
-          newSelected.push(product);
+        if (!newSelected.some((_id) => _id === product._id)) {
+          newSelected.push(product._id);
         }
       });
       setSelectedProducts(newSelected);
@@ -89,7 +90,7 @@ const ModalProduct: React.FC<ModalProductProps> = ({ open, onCancel }) => {
       // Bỏ chọn tất cả products hiện tại
       const currentIds = filteredProducts.map((p) => p._id);
       setSelectedProducts((prev) =>
-        prev.filter((p) => !currentIds.includes(p._id))
+        prev.filter((_id) => !currentIds.includes(_id))
       );
     }
   };
@@ -101,7 +102,7 @@ const ModalProduct: React.FC<ModalProductProps> = ({ open, onCancel }) => {
 
   // Lọc sản phẩm theo search và filter selection
   const filteredProducts = products.filter((product) => {
-    const isSelected = selectedProducts.some((p) => p._id === product._id);
+    const isSelected = selectedProducts.some((_id) => _id === product._id);
 
     switch (filterSelection) {
       case "selected":
@@ -115,7 +116,7 @@ const ModalProduct: React.FC<ModalProductProps> = ({ open, onCancel }) => {
 
   const selectedCount = selectedProducts.length;
   const currentPageSelectedCount = filteredProducts.filter((product) =>
-    selectedProducts.some((p) => p._id === product._id)
+    selectedProducts.some((_id) => _id === product._id)
   ).length;
   const isAllCurrentPageSelected =
     filteredProducts.length > 0 &&
@@ -126,6 +127,7 @@ const ModalProduct: React.FC<ModalProductProps> = ({ open, onCancel }) => {
 
   return (
     <Modal
+      centered
       title={
         <div
           style={{
@@ -239,7 +241,7 @@ const ModalProduct: React.FC<ModalProductProps> = ({ open, onCancel }) => {
             dataSource={filteredProducts}
             renderItem={(product) => {
               const isSelected = selectedProducts.some(
-                (p) => p._id === product._id
+                (_id) => _id === product._id
               );
               return (
                 <List.Item

@@ -4,7 +4,9 @@ import selectedPostSlice from "../features/post/selectedPost.slice";
 import postSlice from "../features/post/post.slice";
 import selectedProductSlice from "../features/product/selectedProduct.slice";
 import productSlice from "../features/product/product.slice";
-
+import selectedAIPromptSlice from "../features/ai_prompt/selectedAIPrompt.slice";
+import aiPromptSlice from "../features/ai_prompt/ai_prompt.slice";
+import scheduleSlice from "../features/schedule/schedule.slice";
 export const store = configureStore({
   reducer: {
     auth: authSlice,
@@ -12,6 +14,9 @@ export const store = configureStore({
     post: postSlice,
     selectedProduct: selectedProductSlice,
     product: productSlice,
+    selectedAIPrompt: selectedAIPromptSlice,
+    aiPrompt: aiPromptSlice,
+    schedule: scheduleSlice,
   },
 });
 export type RootState = ReturnType<typeof store.getState>;

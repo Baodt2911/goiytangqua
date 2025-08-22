@@ -61,6 +61,7 @@ const ProductList: React.FC<{
           pageSize: 8,
           ...filters,
         });
+
         dispatch(getProductsSuccess(products));
         setCurrentPage(other.currentPage);
         setTotalPage(other.totalPage);

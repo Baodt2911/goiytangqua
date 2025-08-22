@@ -1,17 +1,33 @@
-import { PostType } from "./../../types/post.stype";
+import { PostType } from "../../types/post.type";
 import axiosInstance from "../../configs/axios.config";
 import { ProductParamsType } from "../../types/product.type";
-type PostCreateProps = Omit<PostType, "_id" | "products"> & {
+type PostCreateProps = Omit<
+  PostType,
+  | "_id"
+  | "products"
+  | "status"
+  | "publishedAt"
+  | "scheduledFor"
+  | "views"
+  | "isFeatured"
+  | "author"
+  | "generatedBy"
+> & {
   products: string[];
 };
-type PostUpdateProps = Omit<PostType, "products"> & {
+type PostUpdateProps = Omit<
+  PostType,
+  | "products"
+  | "publishedAt"
+  | "scheduledFor"
+  | "views"
+  | "generatedBy"
+  | "isFeatured"
+> & {
   products: string[];
 };
 export const getAllPostAsync = async (params: Partial<ProductParamsType>) => {
   const res = await axiosInstance.get(`/post/all`, {
-    headers: {
-      "Skip-Auth": "true",
-    },
     params,
   });
   return res.data;

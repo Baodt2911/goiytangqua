@@ -45,7 +45,7 @@ function App() {
     >
       <Router>
         <Routes>
-          <Route path="/home" element={<MainLayout />}>
+          <Route path="/" element={<MainLayout />}>
             <Route path="" element={<Home />} />
           </Route>
           <Route path="/auth" element={<AuthLayout />}>

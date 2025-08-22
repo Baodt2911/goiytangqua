@@ -15,7 +15,7 @@ import {
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
 import { useAppDispatch, useAppSelector } from "../../app/hook";
 import { resetProduct } from "../../features/product/selectedProduct.slice";
-import { uploadImage } from "../../features/image/image.service";
+import { deleteImage, uploadImage } from "../../features/image/image.service";
 import {
   createProductAsync,
   updateProductAsync,
@@ -25,6 +25,7 @@ import {
   updateProduct,
 } from "../../features/product/product.slice";
 import { RootState } from "../../app/store";
+import { getPublicId } from "../../utils";
 const { TextArea } = Input;
 const ProductForm: React.FC<{
   open: boolean;
@@ -38,10 +39,10 @@ const ProductForm: React.FC<{
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
-    if (open) {
+    if (open && dataProduct) {
       form.setFieldsValue(dataProduct);
     }
-  }, [open, dataProduct]);
+  }, [open, dataProduct, form]);
 
   useEffect(() => {
     setPreview(dataProduct.image);
@@ -72,6 +73,7 @@ const ProductForm: React.FC<{
       }
       const data = await createProductAsync({ image, ...values });
       if (data.status >= 400) {
+        setIsLoading(false);
         return message.warning(data.message);
       }
       dispatch(createProduct(data.product));
@@ -88,13 +90,20 @@ const ProductForm: React.FC<{
   const handleUpdateProduct = async (values: any) => {
     try {
       setIsLoading(true);
-      const image = await handleUploadImage();
+      let image = dataProduct.image;
+      if (uploadFile) {
+        image = await handleUploadImage();
+        if (image) {
+          await deleteImage(getPublicId(dataProduct.image));
+        }
+      }
       const data = await updateProductAsync({
         _id: dataProduct._id,
         image,
         ...values,
       });
       if (data.status >= 400) {
+        setIsLoading(false);
         return message.warning(data.message);
       }
       dispatch(
@@ -132,8 +141,7 @@ const ProductForm: React.FC<{
       open={open}
       onCancel={onCancel}
       destroyOnClose={true}
-      okButtonProps={{ disabled: true }}
-      cancelButtonProps={{ disabled: true }}
+      footer={null}
       width={{
         xs: "90%",
         sm: "80%",
