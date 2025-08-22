@@ -5,11 +5,32 @@ import {
   getScheduleController,
   updateScheduleController,
 } from "src/controllers";
-import { verifyAdmin } from "src/middlewares";
+import {
+  validateContentScheduleRequest,
+  validateObjectIdRequest,
+  validateUpdateContentScheduleRequest,
+  verifyAdmin,
+} from "src/middlewares";
 const router: Router = Router();
 router.get("/:aiPromptId", verifyAdmin, getScheduleController);
-router.post("/create", verifyAdmin, createScheduleController);
-router.patch("/update/:id", verifyAdmin, updateScheduleController);
-router.delete("/delete/:id", verifyAdmin, deleteScheduleController);
+router.post(
+  "/create",
+  verifyAdmin,
+  validateContentScheduleRequest,
+  createScheduleController
+);
+router.patch(
+  "/update/:id",
+  verifyAdmin,
+  validateObjectIdRequest,
+  validateUpdateContentScheduleRequest,
+  updateScheduleController
+);
+router.delete(
+  "/delete/:id",
+  verifyAdmin,
+  validateObjectIdRequest,
+  deleteScheduleController
+);
 
 export default router;

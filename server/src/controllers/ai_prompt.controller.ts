@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { AIPromptRequestDTO } from "src/dtos";
 import {
+  changeActivePromptService,
   createPromptService,
   deletePromptService,
   getAllPromptService,
@@ -15,6 +16,23 @@ export const createPromptController = async (
   try {
     const data = req.body;
     const { status, message } = await createPromptService(data);
+    res.status(status).json({ status, message });
+  } catch (error: any) {
+    console.error(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      error: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
+    });
+  }
+};
+export const changeActivePromptController = async (
+  req: Request<{ id: string }, {}, { isActive: boolean }>,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+    const { status, message } = await changeActivePromptService(id, isActive);
     res.status(status).json({ status, message });
   } catch (error: any) {
     console.error(error);

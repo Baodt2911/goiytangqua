@@ -5,3 +5,5 @@ export * from "./validation.product.middleware";
 export * from "./validation.user.middleware";
 export * from "./validation.post.middleware";
 export * from "./validation.filter.middleware";
+export * from "./validation.ai_prompt.middleware";
+export * from "./validation.content_schedule.middleware";

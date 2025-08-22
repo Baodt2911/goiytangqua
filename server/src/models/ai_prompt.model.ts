@@ -16,9 +16,9 @@ const AIPromptSchema = new Schema<AIPrompt>(
     maxTokens: { type: Number, required: true },
     systemMessage: { type: String },
     categories: {
-      type: [String],
+      type: String,
       enum: ["chatbot", "gift", "notification", "article"],
-      required: false,
+      required: true,
     },
 
     defaultTags: [{ type: String, required: true }],

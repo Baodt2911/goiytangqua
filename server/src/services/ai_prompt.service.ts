@@ -14,6 +14,29 @@ export const createPromptService = async (data: AIPromptRequestDTO) => {
   }
 };
 
+export const changeActivePromptService = async (
+  id: string,
+  isActive: boolean
+) => {
+  try {
+    const isUpdated = await _aiPrompt.findByIdAndUpdate(id, {
+      $set: { isActive },
+    });
+    if (!isUpdated) {
+      return {
+        status: StatusCodes.NOT_FOUND,
+        message: "Prompt không tồn tại hoặc đã bị xóa",
+      };
+    }
+    return {
+      status: StatusCodes.OK,
+      message: isActive ? "Đã bật prompt" : "Đã tắt prompt",
+    };
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
 export const updatePromptService = async (
   id: string,
   data: Partial<AIPromptRequestDTO>
@@ -34,11 +57,11 @@ export const updatePromptService = async (
     if (data.targetWordCount)
       updateFields.targetWordCount = data.targetWordCount;
     if (data.temperature) updateFields.temperature = data.temperature;
-    if (data.isActive) updateFields.isActive = data.isActive;
 
     const isUpdated = await _aiPrompt.findByIdAndUpdate(id, {
       $set: updateFields,
     });
+
     if (!isUpdated) {
       return {
         status: StatusCodes.NOT_FOUND,
@@ -46,8 +69,8 @@ export const updatePromptService = async (
       };
     }
     return {
-      status: StatusCodes.CREATED,
-      message: "Tạo prompt thành công",
+      status: StatusCodes.OK,
+      message: "Cập nhật prompt thành công",
     };
   } catch (error: any) {
     console.error(error);
@@ -59,7 +82,7 @@ export const getPromptService = async (promptId: string) => {
   try {
     const existingPrompt = await _aiPrompt.findById(promptId).lean();
     return {
-      status: StatusCodes.CREATED,
+      status: StatusCodes.OK,
       element: existingPrompt,
     };
   } catch (error: any) {
@@ -72,7 +95,7 @@ export const getAllPromptService = async () => {
   try {
     const existingPrompts = await _aiPrompt.find().lean();
     return {
-      status: StatusCodes.CREATED,
+      status: StatusCodes.OK,
       element: existingPrompts,
     };
   } catch (error: any) {

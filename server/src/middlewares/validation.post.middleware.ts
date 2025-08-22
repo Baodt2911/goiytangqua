@@ -26,7 +26,7 @@ export const validatePostRequest = (
       message: "tags phải là một mảng (vd: tags:['sinh nhật','valentine',...])",
     });
   }
-  if (products) {
+  if (products?.length === 0) {
     const isValid = products.every((id) => ObjectId.isValid(id.toString()));
     if (!isValid) {
       return res.status(StatusCodes.BAD_REQUEST).json({

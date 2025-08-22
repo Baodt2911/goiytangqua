@@ -6,7 +6,7 @@ import {
   getAllPostsController,
   getCommentsController,
   getPostController,
-  increaseViewController,
+  // increaseViewController,
   updatePostController,
 } from "src/controllers";
 import {
@@ -19,7 +19,7 @@ import {
 } from "src/middlewares";
 const router: Router = Router();
 router.get("/slug/:slug", getPostController);
-router.post("/slug/:slug/view", authOptional, increaseViewController);
+// router.post("/slug/:slug/view", authOptional, increaseViewController);
 router.get("/all", authOptional, getAllPostsController);
 router.get("/:id/comments", validateObjectIdRequest, getCommentsController);
 router.post(

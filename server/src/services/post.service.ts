@@ -1,6 +1,6 @@
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import slugify from "slugify";
-import redis from "src/configs/redis.cofig";
+// import redis from "src/configs/redis.cofig";
 import {
   getAllPostRequestQueryDTO,
   PostRequestDTO,
@@ -8,26 +8,37 @@ import {
 } from "src/dtos";
 import { _post } from "src/models";
 import { normalizeTagsToSlug } from "src/utils";
+import { callAIWithPrompt } from "src/utils/AI_service";
 
 export const createPostService = async (data: PostRequestDTO) => {
   try {
-    let { slug, tags, ...other } = data;
+    let { slug, tags, description, ...other } = data;
 
     slug = slugify(slug, { lower: true, strict: true, locale: "vi" });
     if (tags) {
       tags = normalizeTagsToSlug(tags);
     }
+
     const isSlug = await _post.findOne({ slug });
-    if (!isSlug) {
+    if (isSlug) {
       return {
         status: StatusCodes.CONFLICT,
         message: "Slug đã tốn tại",
       };
     }
+    if (!description) {
+      const prompt = `Tạo cho tôi description cho bài viết này của tôi ngắn gọn dưới 200 từ. Đây là dữ liệu bài viết ${data.content}`;
+      const AI_Response = await callAIWithPrompt(
+        { aiProvider: "gemini", aiModel: "gemini-1.5-flash" },
+        prompt
+      );
+      description = AI_Response as string;
+    }
     await _post.create({
       ...other,
       slug,
       tags,
+      description,
     });
     return {
       status: StatusCodes.CREATED,
@@ -62,7 +73,14 @@ export const getAllPostsService = async (
   data: Partial<getAllPostRequestQueryDTO>
 ) => {
   try {
-    const { page = 1, pageSize = 10, search, tags } = data;
+    const {
+      page = 1,
+      pageSize = 10,
+      search,
+      status,
+      isFeatured,
+      generatedBy,
+    } = data;
     let query: any = {};
 
     if (!viewer || viewer.role !== "admin") {
@@ -72,11 +90,19 @@ export const getAllPostsService = async (
     if (search) {
       query.title = { $regex: `^${search}`, $options: "i" };
     }
-    if (tags) {
-      query.tags = {
-        $in: tags.split(","),
-      };
+
+    if (status) {
+      query.status = status;
     }
+
+    if (isFeatured) {
+      query.isFeatured = isFeatured;
+    }
+
+    if (generatedBy) {
+      query.generatedBy = generatedBy;
+    }
+
     if (filters) {
       query.$and = Object.entries(filters).map(([key, value]) => ({
         [`filters.${key}`]: value,
@@ -135,6 +161,7 @@ export const updatePostService = async (
     if (slug) {
       slug = slugify(slug, { lower: true, strict: true, locale: "vi" });
     }
+
     let updateFields: Partial<UpdatePostRequestDTO> = {};
     if (title) updateFields.title = title;
     if (thumbnail) updateFields.thumbnail = thumbnail;
@@ -149,6 +176,8 @@ export const updatePostService = async (
     if (isFeatured) updateFields.isFeatured = isFeatured;
     if (author) updateFields.author = author;
     if (aiPromptId) updateFields.aiPromptId = aiPromptId;
+
+    console.log(updateFields);
 
     const isUpdated = await _post.findByIdAndUpdate(id, {
       $set: updateFields,
@@ -168,34 +197,34 @@ export const updatePostService = async (
     throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
   }
 };
-export const increaseViewService = async (
-  slug: string,
-  user: any,
-  ip: string | undefined
-) => {
-  try {
-    const existingPosts = await _post.findOne({ slug });
-    if (!existingPosts) {
-      return {
-        status: StatusCodes.NOT_FOUND,
-        message: "Bài viết không tồn tại hoặc đã bị xóa",
-      };
-    }
-    const key = `view:${slug}:${user?.userId || ip}`;
+// export const increaseViewService = async (
+//   slug: string,
+//   user: any,
+//   ip: string | undefined
+// ) => {
+//   try {
+//     const existingPosts = await _post.findOne({ slug });
+//     if (!existingPosts) {
+//       return {
+//         status: StatusCodes.NOT_FOUND,
+//         message: "Bài viết không tồn tại hoặc đã bị xóa",
+//       };
+//     }
+//     const key = `view:${slug}:${user?.userId || ip}`;
 
-    const viewed = await redis.get(key);
-    if (!viewed) {
-      await _post.findOneAndUpdate({ slug }, { $inc: { views: 1 } });
-      await redis.set(key, "1", "EX", 60 * 10); // 10 phút
-    }
-    return {
-      status: StatusCodes.OK,
-    };
-  } catch (error: any) {
-    console.error(error);
-    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
-  }
-};
+//     const viewed = await redis.get(key);
+//     if (!viewed) {
+//       await _post.findOneAndUpdate({ slug }, { $inc: { views: 1 } });
+//       await redis.set(key, "1", "EX", 60 * 10); // 10 phút
+//     }
+//     return {
+//       status: StatusCodes.OK,
+//     };
+//   } catch (error: any) {
+//     console.error(error);
+//     throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
+//   }
+// };
 export const deletePostService = async (id: string) => {
   try {
     const isDeleted = await _post.findByIdAndDelete(id);

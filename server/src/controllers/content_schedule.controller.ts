@@ -47,7 +47,7 @@ export const getScheduleController = async (
   try {
     const { aiPromptId } = req.params;
     const { status, element } = await getScheduleService(aiPromptId);
-    res.status(status).json({ status, prompt: element });
+    res.status(status).json({ status, schedule: element });
   } catch (error: any) {
     console.error(error);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({

@@ -1,7 +1,7 @@
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import slugify from "slugify";
 import { ContentScheduleRequestDTO } from "src/dtos";
-import { _contentSchedule, _aiPrompt, _post } from "src/models";
+import { _contentSchedule, _aiPrompt, _post, _product } from "src/models";
 import { callAIWithPrompt } from "src/utils/AI_service";
 export const createScheduleService = async (
   data: ContentScheduleRequestDTO
@@ -58,8 +58,8 @@ export const updateScheduleService = async (
       };
     }
     return {
-      status: StatusCodes.CREATED,
-      message: "Tạo schedule thành công",
+      status: StatusCodes.OK,
+      message: "Cập nhật schedule thành công",
     };
   } catch (error: any) {
     console.error(error);
@@ -73,7 +73,7 @@ export const getScheduleService = async (aiPromptId: string) => {
       .findOne({ aiPromptId })
       .lean();
     return {
-      status: StatusCodes.CREATED,
+      status: StatusCodes.OK,
       element: existingSchedule,
     };
   } catch (error: any) {
@@ -104,7 +104,7 @@ export const deleteScheduleService = async (id: string) => {
 export const generateContentService = async (schedule: any) => {
   try {
     const existingPrompt = await _aiPrompt.findById(schedule.aiPromptId).lean();
-
+    const products = await _product.find().lean();
     if (!existingPrompt) {
       throw new Error("Prompt không tồn tại");
     }
@@ -116,9 +116,27 @@ export const generateContentService = async (schedule: any) => {
       maxTokens,
       promptTemplate,
       systemMessage,
+      defaultTags,
+      targetWordCount,
     } = existingPrompt;
 
-    const promptDefault = `Tạo bài viết theo dạng {title, content}, title là tên tiêu đề bài viết (Không dùng ký tự đặc biệt), content sẽ chứa nội dung bài viết (content viết thành dạng html giống TinyMCE, chỉ viết body và không viết đầy đủ cầu trúc html)`;
+    const userPrompt = `
+        Tạo một bài viết gợi ý quà tặng với các thông tin sau:
+        - Tags: ${defaultTags}
+        - Prompt template: ${promptTemplate}
+
+        Yêu cầu bắt buộc:
+        1. Chỉ trả về dữ liệu dưới dạng JSON thuần, không được bao quanh bởi bất kỳ ký hiệu mở/đóng khối code (ví dụ: ba dấu backtick) hoặc bất kỳ văn bản nào ngoài JSON.
+        2. JSON phải có cấu trúc:
+        {
+          "title": "Tiêu đề ngắn gọn, thu hút, <= 70 ký tự",
+          "description": "Mô tả ngắn khoảng 1-2 câu để thu hút người đọc",
+          "content": "Nội dung chi tiết khoảng ${targetWordCount} từ, viết theo phong cách gần gũi, gợi cảm xúc, có kèm vài gợi ý quà cụ thể từ danh sách quà này (${products})"
+        }
+        3. Trường "content" viết theo dạng HTML body (giống TinyMCE) — chỉ viết phần nội dung, không viết thẻ <html>, <head> hoặc <body>. Bắt buộc phải chứa link sản phẩm từ danh sách ${products} trong nội dung.
+        4. Tuyệt đối không được thêm ký hiệu ba dấu backtick hoặc thẻ code block vào bất kỳ đâu trong phản hồi.
+        5. Giữ đúng tone: tích cực, ấm áp, truyền cảm hứng.
+        6. Đảm bảo JSON trả về hợp lệ để có thể parse trực tiếp bằng JSON.parse().`;
 
     const AI_Response = (await callAIWithPrompt(
       {
@@ -128,43 +146,72 @@ export const generateContentService = async (schedule: any) => {
         maxTokens,
         systemMessage,
       },
-      promptDefault + promptTemplate
+      userPrompt
     )) as any;
-    console.log(AI_Response);
 
-    const titleRegex = /"title": "(.*?)"/;
-    const contentRegex = /"content": "(.*?)"/;
+    console.log(AI_Response);
+    let raw = String(AI_Response).trim();
+    let title = "";
+    let content = "";
+    try {
+      const obj = JSON.parse(raw);
+      title = obj.title ?? "";
+      content = obj.content ?? "";
+    } catch {
+      // title: regex JSON-safe
+      const t = raw.match(/"title"\s*:\s*"((?:\\.|[^"\\])*)"/);
+      if (t) title = (t[1] ?? "").replace(/\\"/g, '"');
+
+      // content: field cuối → cắt theo vị trí
+      const keyIdx = raw.indexOf('"content"');
+      if (keyIdx !== -1) {
+        const firstQuote = raw.indexOf('"', keyIdx + 9); // sau \"content\":
+        const lastBrace = raw.lastIndexOf("}");
+        const lastQuote = raw.lastIndexOf('"', lastBrace);
+        if (firstQuote !== -1 && lastQuote !== -1 && lastQuote > firstQuote) {
+          content = raw.substring(firstQuote + 1, lastQuote);
+          // bỏ escape tối thiểu
+          content = content.replace(/\\"/g, '"');
+        }
+      }
+    }
+    const titleRegex = /"title"\s*:\s*"((?:\\.|[^"\\])*)"/;
+    const descriptionRegex = /"title"\s*:\s*"((?:\\.|[^"\\])*)"/;
+    const contentRegex = /"content"\s*:\s*"((?:\\.|[^"\\])*)"/;
 
     const titleMatch = AI_Response.match(titleRegex);
+    const descriptionMatch = AI_Response.match(descriptionRegex);
     const contentMatch = AI_Response.match(contentRegex);
 
-    const title = titleMatch ? titleMatch[1] : "";
-    const content = contentMatch ? contentMatch[1] : "";
+    // const title = titleMatch ? titleMatch[1] : "";
+    // const description = descriptionMatch ? descriptionMatch[1] : "";
+    // const content = contentMatch ? contentMatch[1] : "";
 
-    await _post.create({
-      title,
-      content,
-      slug: slugify(title, {
-        lower: true,
-        strict: true,
-        locale: "vi",
-      }),
-      tags: existingPrompt.defaultTags,
-      generatedBy: "ai",
-      aiPromptId: schedule.aiPromptId,
-      status: schedule.autoPublish ? "published" : "draft",
-      author: aiProvider,
-      // thumbnail: await generateThumbnail(AI_Response.title),
-      publishedAt: schedule.autoPublish ? new Date() : undefined,
-    });
+    console.log({ title, content });
+    // await _post.create({
+    //   title,
+    //   content,
+    //   slug: slugify(title, {
+    //     lower: true,
+    //     strict: true,
+    //     locale: "vi",
+    //   }),
+    //   tags: existingPrompt.defaultTags,
+    //   generatedBy: "ai",
+    //   aiPromptId: schedule.aiPromptId,
+    //   status: schedule.autoPublish ? "published" : "draft",
+    //   author: aiProvider,
+    //   // thumbnail: await generateThumbnail(AI_Response.title),
+    //   publishedAt: schedule.autoPublish ? new Date() : undefined,
+    // });
 
-    await _contentSchedule.updateOne(
-      { _id: schedule._id },
-      {
-        $inc: { totalRuns: 1 },
-        $set: { lastRunAt: new Date() },
-      }
-    );
+    // await _contentSchedule.updateOne(
+    //   { _id: schedule._id },
+    //   {
+    //     $inc: { totalRuns: 1 },
+    //     $set: { lastRunAt: new Date() },
+    //   }
+    // );
     return {
       status: StatusCodes.OK,
       message: "Xóa schedule thành công",

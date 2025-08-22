@@ -4,6 +4,7 @@ const postSchema = new Schema<Post>(
   {
     title: { type: String, required: true },
     thumbnail: { type: String, required: false },
+    description: { type: String },
     slug: { type: String, required: true, unique: true },
     content: { type: String, required: true },
     tags: [{ type: String }],
@@ -18,7 +19,7 @@ const postSchema = new Schema<Post>(
     scheduledFor: { type: Date },
     views: { type: Number, required: true, default: 0 },
     isFeatured: { type: Boolean, default: false },
-    author: { type: String, required: true },
+    author: { type: String, required: true, default: "Baodt2911" },
     generatedBy: {
       type: String,
       enum: ["human", "ai", "hybrid"],

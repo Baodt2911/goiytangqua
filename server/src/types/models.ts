@@ -13,6 +13,7 @@ export type User = Document & {
 export type Post = Document & {
   title: string;
   thumbnail?: string;
+  description?: string;
   slug: string;
   content: string;
   tags?: string[];
@@ -42,7 +43,7 @@ export type AIPrompt = Document & {
   systemMessage?: string;
 
   // Content defaults
-  categories?: ("chatbot" | "gift" | "notification" | "article")[];
+  categories: "chatbot" | "gift" | "notification" | "article";
   defaultTags: string[]; // Auto-applied tags
   targetWordCount: number; // Desired length
 

@@ -105,7 +105,7 @@ export const getAllProductService = async (
         case "name_desc":
           return { name: -1 };
         case "newest":
-          return { createdAt: 1 };
+          return { createdAt: -1 };
         case "oldest":
           return { createdAt: 1 };
         default:

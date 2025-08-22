@@ -3,7 +3,8 @@ import { Post } from "src/types";
 
 export type PostRequestDTO = {
   title: string;
-  thumbnail: string;
+  thumbnail?: string;
+  description?: string;
   slug: string;
   content: string;
   tags?: string[];
@@ -14,6 +15,7 @@ export type PostRequestDTO = {
 export type UpdatePostRequestDTO = {
   title: string;
   thumbnail: string;
+  description: string;
   slug: string;
   content: string;
   tags: string[];
@@ -30,5 +32,7 @@ export type getAllPostRequestQueryDTO = {
   page: number;
   pageSize: number;
   search: string;
-  tags: string;
+  status: "draft" | "published" | "scheduled";
+  isFeatured: boolean;
+  generatedBy: "human" | "ai" | "hybrid";
 };

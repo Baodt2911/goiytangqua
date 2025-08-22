@@ -23,6 +23,7 @@ import {
   imageRouter,
   aiPromptRouter,
   contentScheduleRouter,
+  statsRouter,
 } from "./routes";
 import passport from "passport";
 import scheduleAnniversaries from "./schedules/anniversary";
@@ -93,6 +94,7 @@ app.use("/otp", otpRouter);
 app.use("/relationship", relationshipRouter);
 app.use("/prompt", aiPromptRouter);
 app.use("/content-schedule", contentScheduleRouter);
+app.use("/stats", statsRouter);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(StatusCodes.NOT_FOUND).json({
