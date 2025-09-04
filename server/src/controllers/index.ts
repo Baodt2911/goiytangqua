@@ -11,3 +11,5 @@ export * from "./notification.controller";
 export * from "./ai_prompt.controller";
 export * from "./content_schedule.controller";
 export * from "./stats.controller";
+export * from "./chat.controller";
+export * from "./conversation.controller";

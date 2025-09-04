@@ -1,4 +1,3 @@
-export { default as commentRouter } from "./comment.route";
 export { default as filterRouter } from "./filter.route";
 export { default as postRouter } from "./post.route";
 export { default as productRouter } from "./product.route";
@@ -6,9 +5,9 @@ export { default as tokenRouter } from "./token.route";
 export { default as userRouter } from "./user.route";
 export { default as notificationRouter } from "./notification.route";
 export { default as otpRouter } from "./otp.route";
-export { default as relationshipRouter } from "./relationship.route";
 export { default as authRouter } from "./auth.route";
 export { default as imageRouter } from "./image.route";
 export { default as aiPromptRouter } from "./ai_prompt.route";
 export { default as contentScheduleRouter } from "./content_schedule.route";
 export { default as statsRouter } from "./stats.route";
+export { default as chatRouter } from "./chat.route";

@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
 import jwt from "jsonwebtoken";
-import { CustomSocket } from "src/types";
+import { CustomSocketType } from "src/types";
 export const verifyAccessTokenSocket = (
-  socket: CustomSocket,
+  socket: CustomSocketType,
   next: NextFunction
 ) => {
   const accessToken: string = socket.handshake.auth.token;
@@ -22,7 +22,7 @@ export const verifyAccessTokenSocket = (
 
       return next(new Error("Token không hợp lệ"));
     }
-    socket.decoded = decoded;
+    socket.user = decoded;
     next();
   });
 };

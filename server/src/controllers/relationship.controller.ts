@@ -5,7 +5,6 @@ import {
   addNewRelationshipService,
   deleteRelationshipService,
   getRelationshipService,
-  removeAnniversariesService,
   updateRelationshipService,
 } from "src/services";
 export const addNewRealationshipController = async (
@@ -76,27 +75,6 @@ export const updateRelationshipController = async (
       anniversaries,
     };
     const { status, message } = await updateRelationshipService(user, id, data);
-    res.status(status).json({ status, message });
-  } catch (error: any) {
-    console.error(error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      status: StatusCodes.INTERNAL_SERVER_ERROR,
-      error: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
-    });
-  }
-};
-export const removeAnniversariesController = async (
-  req: Request<{ id_relationship: string; id_anniversaries: string }>,
-  res: Response
-) => {
-  try {
-    const user = req.user;
-    const { id_relationship, id_anniversaries } = req.params;
-    const { status, message } = await removeAnniversariesService(
-      user,
-      id_relationship,
-      id_anniversaries
-    );
     res.status(status).json({ status, message });
   } catch (error: any) {
     console.error(error);

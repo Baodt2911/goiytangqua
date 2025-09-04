@@ -2,7 +2,7 @@ import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import slugify from "slugify";
 import { ContentScheduleRequestDTO } from "src/dtos";
 import { _contentSchedule, _aiPrompt, _post, _product } from "src/models";
-import { callAIWithPrompt } from "src/utils/AI_service";
+import { callAIWithPrompt } from "src/utils";
 export const createScheduleService = async (
   data: ContentScheduleRequestDTO
 ) => {
@@ -121,22 +121,45 @@ export const generateContentService = async (schedule: any) => {
     } = existingPrompt;
 
     const userPrompt = `
-        Tạo một bài viết gợi ý quà tặng với các thông tin sau:
-        - Tags: ${defaultTags}
-        - Prompt template: ${promptTemplate}
+      Tạo một bài viết gợi ý quà tặng với các thông tin sau:
+      - Tags: ${defaultTags}
+      - Prompt template: ${promptTemplate}
 
-        Yêu cầu bắt buộc:
-        1. Chỉ trả về dữ liệu dưới dạng JSON thuần, không được bao quanh bởi bất kỳ ký hiệu mở/đóng khối code (ví dụ: ba dấu backtick) hoặc bất kỳ văn bản nào ngoài JSON.
-        2. JSON phải có cấu trúc:
-        {
-          "title": "Tiêu đề ngắn gọn, thu hút, <= 70 ký tự",
-          "description": "Mô tả ngắn khoảng 1-2 câu để thu hút người đọc",
-          "content": "Nội dung chi tiết khoảng ${targetWordCount} từ, viết theo phong cách gần gũi, gợi cảm xúc, có kèm vài gợi ý quà cụ thể từ danh sách quà này (${products})"
-        }
-        3. Trường "content" viết theo dạng HTML body (giống TinyMCE) — chỉ viết phần nội dung, không viết thẻ <html>, <head> hoặc <body>. Bắt buộc phải chứa link sản phẩm từ danh sách ${products} trong nội dung.
-        4. Tuyệt đối không được thêm ký hiệu ba dấu backtick hoặc thẻ code block vào bất kỳ đâu trong phản hồi.
-        5. Giữ đúng tone: tích cực, ấm áp, truyền cảm hứng.
-        6. Đảm bảo JSON trả về hợp lệ để có thể parse trực tiếp bằng JSON.parse().`;
+      Yêu cầu bắt buộc:
+      1. Trả về theo định dạng sau, CHÍNH XÁC theo cấu trúc này:
+
+      ===TITLE===
+      [Tiêu đề ngắn gọn, thu hút, <= 70 ký tự]
+      ===DESCRIPTION===
+      [Mô tả ngắn khoảng 1-2 câu để thu hút người đọc]
+      ===CONTENT===
+      [Nội dung chi tiết khoảng ${targetWordCount} từ, viết theo dạng HTML]
+      ===END===
+
+      2. Phần CONTENT viết theo dạng HTML body (giống TinyMCE):
+        - Chỉ viết nội dung, không có thẻ <html>, <head>, <body>
+        - Sử dụng các thẻ như <h2>, <h3>, <p>, <strong>, <em>, <ul>, <li>
+        - Bắt buộc chứa ít nhất 2-3 link sản phẩm từ danh sách: ${JSON.stringify(
+          products
+        )}
+
+      3. Format link sản phẩm: <a href="URL_SẢN_PHẨM" target="_blank">TÊN_SẢN_PHẨM</a>
+
+      4. Giữ đúng tone: tích cực, ấm áp, truyền cảm hứng, thân thiện
+
+      5. QUAN TRỌNG: Tuân thủ chính xác format trên, bắt đầu bằng ===TITLE=== và kết thúc bằng ===END===
+
+      Ví dụ format mong muốn:
+      ===TITLE===
+      10 Món Quà Tặng Ý Nghĩa Cho Người Thân Yêu
+      ===DESCRIPTION===
+      Khám phá những món quà độc đáo, mang đến niềm vui và kết nối tình cảm gia đình.
+      ===CONTENT===
+      <h2>Những món quà từ trái tim</h2>
+      <p>Việc chọn quà tặng không chỉ đơn thuần là trao đổi vật chất...</p>
+      <p>Hãy cân nhắc <a href="/product1" target="_blank">Áo len cao cấp</a> với thiết kế tinh tế...</p>
+      ===END===
+      `;
 
     const AI_Response = (await callAIWithPrompt(
       {
@@ -150,77 +173,68 @@ export const generateContentService = async (schedule: any) => {
     )) as any;
 
     console.log(AI_Response);
-    let raw = String(AI_Response).trim();
-    let title = "";
-    let content = "";
-    try {
-      const obj = JSON.parse(raw);
-      title = obj.title ?? "";
-      content = obj.content ?? "";
-    } catch {
-      // title: regex JSON-safe
-      const t = raw.match(/"title"\s*:\s*"((?:\\.|[^"\\])*)"/);
-      if (t) title = (t[1] ?? "").replace(/\\"/g, '"');
 
-      // content: field cuối → cắt theo vị trí
-      const keyIdx = raw.indexOf('"content"');
-      if (keyIdx !== -1) {
-        const firstQuote = raw.indexOf('"', keyIdx + 9); // sau \"content\":
-        const lastBrace = raw.lastIndexOf("}");
-        const lastQuote = raw.lastIndexOf('"', lastBrace);
-        if (firstQuote !== -1 && lastQuote !== -1 && lastQuote > firstQuote) {
-          content = raw.substring(firstQuote + 1, lastQuote);
-          // bỏ escape tối thiểu
-          content = content.replace(/\\"/g, '"');
-        }
-      }
+    // Parsing code cho phiên bản 1:
+    const titleMatch = AI_Response.match(
+      /===TITLE===\s*(.*?)\s*===DESCRIPTION===/s
+    );
+    const descMatch = AI_Response.match(
+      /===DESCRIPTION===\s*(.*?)\s*===CONTENT===/s
+    );
+    const contentMatch = AI_Response.match(
+      /===CONTENT===\s*(.*?)\s*===END===/s
+    );
+
+    const title = titleMatch ? titleMatch[1].trim() : "";
+    const description = descMatch ? descMatch[1].trim() : "";
+    const content = contentMatch ? contentMatch[1].trim() : "";
+
+    if (!title) {
+      console.error("⚠️ Title not found or empty");
     }
-    const titleRegex = /"title"\s*:\s*"((?:\\.|[^"\\])*)"/;
-    const descriptionRegex = /"title"\s*:\s*"((?:\\.|[^"\\])*)"/;
-    const contentRegex = /"content"\s*:\s*"((?:\\.|[^"\\])*)"/;
+    if (!description) {
+      console.error("⚠️ Description not found or empty");
+    }
+    if (!content) {
+      console.error("⚠️ Content not found or empty");
+    }
 
-    const titleMatch = AI_Response.match(titleRegex);
-    const descriptionMatch = AI_Response.match(descriptionRegex);
-    const contentMatch = AI_Response.match(contentRegex);
+    console.log({ title, description, content });
+    if (title && content) {
+      await _post.create({
+        title,
+        content,
+        slug: slugify(title, {
+          lower: true,
+          strict: true,
+          locale: "vi",
+        }),
+        tags: existingPrompt.defaultTags,
+        generatedBy: "ai",
+        aiPromptId: schedule.aiPromptId,
+        status: schedule.autoPublish ? "published" : "draft",
+        author: aiProvider,
+        publishedAt: schedule.autoPublish ? new Date() : undefined,
+      });
 
-    // const title = titleMatch ? titleMatch[1] : "";
-    // const description = descriptionMatch ? descriptionMatch[1] : "";
-    // const content = contentMatch ? contentMatch[1] : "";
-
-    console.log({ title, content });
-    // await _post.create({
-    //   title,
-    //   content,
-    //   slug: slugify(title, {
-    //     lower: true,
-    //     strict: true,
-    //     locale: "vi",
-    //   }),
-    //   tags: existingPrompt.defaultTags,
-    //   generatedBy: "ai",
-    //   aiPromptId: schedule.aiPromptId,
-    //   status: schedule.autoPublish ? "published" : "draft",
-    //   author: aiProvider,
-    //   // thumbnail: await generateThumbnail(AI_Response.title),
-    //   publishedAt: schedule.autoPublish ? new Date() : undefined,
-    // });
-
-    // await _contentSchedule.updateOne(
-    //   { _id: schedule._id },
-    //   {
-    //     $inc: { totalRuns: 1 },
-    //     $set: { lastRunAt: new Date() },
-    //   }
-    // );
-    return {
-      status: StatusCodes.OK,
-      message: "Xóa schedule thành công",
-    };
+      await _contentSchedule.updateOne(
+        { _id: schedule._id },
+        {
+          $inc: { totalRuns: 1 },
+          $set: { lastRunAt: new Date() },
+        }
+      );
+    } else {
+      throw new Error(
+        "Không thể extract được title hoặc content từ AI response"
+      );
+    }
   } catch (error: any) {
     console.error(error);
     throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
   }
 };
+
 export const updateNextRunService = async (schedule: any) => {
   function addDays(date: Date, days: number) {
     const result = new Date(date);

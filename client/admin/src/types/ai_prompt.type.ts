@@ -8,7 +8,7 @@ export type AIPrompt = {
   temperature: number;
   maxTokens: number;
   systemMessage?: string;
-  categories?: ("chatbot" | "gift" | "notification" | "article")[] | undefined;
+  categories?: "chatbot" | "gift" | "notification" | "article";
   defaultTags: string[];
   targetWordCount: number;
   availableVariables?: string[];

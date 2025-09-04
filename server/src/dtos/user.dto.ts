@@ -16,4 +16,5 @@ export type UpdateProfileRequestDTO = {
   name?: string;
   birthday?: Date;
   gender?: "nam" | "nữ";
+  preferences?: string[];
 };

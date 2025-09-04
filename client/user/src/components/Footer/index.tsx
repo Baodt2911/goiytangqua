@@ -1,15 +1,20 @@
-import { Layout } from "antd";
 import {
-  FacebookOutlined,
-  InstagramOutlined,
-  TwitterOutlined,
-  MailOutlined,
-  PhoneOutlined,
-} from "@ant-design/icons";
+  Layout,
+  Row,
+  Col,
+  Typography,
+  Input,
+  Button,
+  Space,
+  Divider,
+} from "antd";
 import { useSelector } from "react-redux";
 import { RootState } from "../../app/store";
+import logoDark from "../../assets/logos/logo-dark.png";
+import logoLight from "../../assets/logos/logo-light.png";
 
 const { Footer } = Layout;
+const { Title, Text, Link } = Typography;
 
 const AppFooter = () => {
   const theme = useSelector((state: RootState) => state.theme.mode);
@@ -17,139 +22,200 @@ const AppFooter = () => {
   return (
     <Footer
       style={{
-        background: theme === "dark" ? "#181818" : "#fff",
-        color: theme === "dark" ? "#ccc" : "#333",
-        padding: "50px 20px",
-        textAlign: "center",
-        borderTop: "1px solid rgba(0, 0, 0, 0.1)",
-        marginTop: "50px",
+        background: theme === "dark" ? "#1f2937" : "#ffffff",
+        padding: "48px 24px 24px",
+        marginTop: "40px",
       }}
     >
-      <div
+      {/* Main Footer Content */}
+      <Row gutter={[48, 32]} style={{ maxWidth: "1200px", margin: "0 auto" }}>
+        {/* Logo & Navigation */}
+        <Col xs={24} sm={24} md={12} lg={12}>
+          <div style={{ marginBottom: "24px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: "16px",
+              }}
+            >
+              <img
+                src={theme === "dark" ? logoLight : logoDark}
+                alt=""
+                width={200}
+              />
+            </div>
+
+            <Space size="large" wrap>
+              <Link
+                href="/about"
+                style={{
+                  color: theme === "dark" ? "#d1d5db" : "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
+                Giới thiệu
+              </Link>
+              <Link
+                href="/careers"
+                style={{
+                  color: theme === "dark" ? "#d1d5db" : "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
+                Tuyển dụng
+              </Link>
+              <Link
+                href="/press"
+                style={{
+                  color: theme === "dark" ? "#d1d5db" : "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
+                Báo chí
+              </Link>
+              <Link
+                href="/customer-care"
+                style={{
+                  color: theme === "dark" ? "#d1d5db" : "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
+                Chăm sóc khách hàng
+              </Link>
+              <Link
+                href="/services"
+                style={{
+                  color: theme === "dark" ? "#d1d5db" : "#374151",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
+                Dịch vụ
+              </Link>
+            </Space>
+          </div>
+        </Col>
+
+        {/* Newsletter Subscription */}
+        <Col xs={24} sm={24} md={12} lg={12}>
+          <div style={{ textAlign: "right" }}>
+            <Title
+              level={5}
+              style={{
+                margin: "0 0 16px 0",
+                color: theme === "dark" ? "#f9fafb" : "#111827",
+                fontSize: "16px",
+                fontWeight: "600",
+              }}
+            >
+              Nhận tin tức mới nhất từ chúng tôi
+            </Title>
+
+            <Space.Compact style={{ width: "100%", maxWidth: "400px" }}>
+              <Input
+                placeholder="Địa chỉ email của bạn..."
+                style={{
+                  borderRadius: "8px 0 0 8px",
+                  border:
+                    theme === "dark"
+                      ? "1px solid #4b5563"
+                      : "1px solid #d1d5db",
+                  background: "#ffffff",
+                  color: "#111827",
+                }}
+              />
+              <Button
+                type="primary"
+                style={{
+                  borderRadius: "0 8px 8px 0",
+                  border: "none",
+                  height: "40px",
+                  fontWeight: "500",
+                }}
+              >
+                Đăng ký
+              </Button>
+            </Space.Compact>
+          </div>
+        </Col>
+      </Row>
+
+      {/* Divider */}
+      <Divider
+        style={{
+          margin: "32px auto",
+          maxWidth: "1200px",
+          borderColor: theme === "dark" ? "#4b5563" : "#e5e7eb",
+        }}
+      />
+
+      {/* Bottom Section - Legal & Copyright */}
+      <Row
         style={{
           maxWidth: "1200px",
           margin: "0 auto",
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "space-between",
-          gap: "20px",
+          alignItems: "center",
         }}
       >
-        {/* Cột 1: Logo & Slogan */}
-        <div style={{ flex: 1, minWidth: "300px", textAlign: "left" }}>
-          <h2
-            style={{
-              color: theme === "dark" ? "#fff" : "#333",
-              fontFamily: "cursive",
-              marginBottom: "10px",
-            }}
-          >
-            🎁 Gợi Ý Tặng Quà
-          </h2>
-          <p style={{ fontSize: "14px", opacity: 0.8, lineHeight: "1.6" }}>
-            Chúng tôi giúp bạn tìm kiếm món quà ý nghĩa cho người thân yêu.
-          </p>
-        </div>
-
-        {/* Cột 2: Menu Điều Hướng */}
-        <div style={{ flex: 1, minWidth: "200px", textAlign: "center" }}>
-          <h3
-            style={{
-              fontSize: "16px",
-              fontWeight: "bold",
-              marginBottom: "12px",
-            }}
-          >
-            Menu
-          </h3>
-          <p>
-            <a
-              href="/about"
-              style={{ color: theme === "dark" ? "#ccc" : "#333" }}
+        <Col xs={24} sm={24} md={12} lg={12}>
+          <Space size="large" wrap>
+            <Link
+              href="/terms"
+              style={{
+                color: theme === "dark" ? "#9ca3af" : "#6b7280",
+                fontSize: "14px",
+              }}
             >
-              Giới thiệu
-            </a>
-          </p>
-          <p>
-            <a
+              Điều khoản & Điều kiện
+            </Link>
+            <Link
               href="/privacy"
-              style={{ color: theme === "dark" ? "#ccc" : "#333" }}
+              style={{
+                color: theme === "dark" ? "#9ca3af" : "#6b7280",
+                fontSize: "14px",
+              }}
             >
               Chính sách bảo mật
-            </a>
-          </p>
-          <p>
-            <a
-              href="/terms"
-              style={{ color: theme === "dark" ? "#ccc" : "#333" }}
+            </Link>
+            <Link
+              href="/accessibility"
+              style={{
+                color: theme === "dark" ? "#9ca3af" : "#6b7280",
+                fontSize: "14px",
+              }}
             >
-              Điều khoản sử dụng
-            </a>
-          </p>
-          <p>
-            <a
-              href="/contact"
-              style={{ color: theme === "dark" ? "#ccc" : "#333" }}
+              Khả năng tiếp cận
+            </Link>
+            <Link
+              href="/legal"
+              style={{
+                color: theme === "dark" ? "#9ca3af" : "#6b7280",
+                fontSize: "14px",
+              }}
             >
-              Liên hệ
-            </a>
-          </p>
-        </div>
+              Pháp lý
+            </Link>
+          </Space>
+        </Col>
 
-        {/* Cột 3: Liên hệ & Mạng Xã Hội */}
-        <div style={{ flex: 1, minWidth: "250px", textAlign: "right" }}>
-          <h3
-            style={{
-              fontSize: "16px",
-              fontWeight: "bold",
-              marginBottom: "12px",
-            }}
-          >
-            Liên hệ
-          </h3>
-          <p>
-            <MailOutlined /> contact@goiytangqua.com
-          </p>
-          <p>
-            <PhoneOutlined /> 0123 456 789
-          </p>
-          <div
-            style={{
-              marginTop: "12px",
-              display: "flex",
-              gap: "10px",
-              justifyContent: "flex-end",
-            }}
-          >
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              style={{ fontSize: "20px", color: "#1877f2" }}
+        <Col xs={24} sm={24} md={12} lg={12}>
+          <div style={{ textAlign: "right" }}>
+            <Text
+              style={{
+                color: theme === "dark" ? "#9ca3af" : "#6b7280",
+                fontSize: "14px",
+              }}
             >
-              <FacebookOutlined />
-            </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              style={{ fontSize: "20px", color: "#E1306C" }}
-            >
-              <InstagramOutlined />
-            </a>
-            <a
-              href="https://twitter.com"
-              target="_blank"
-              style={{ fontSize: "20px", color: "#1DA1F2" }}
-            >
-              <TwitterOutlined />
-            </a>
+              Design with Baodt2911 © goiytangqua 2025.
+            </Text>
           </div>
-        </div>
-      </div>
-
-      {/* Copyright */}
-      <div style={{ marginTop: "30px", fontSize: "14px", opacity: 0.7 }}>
-        © {new Date().getFullYear()} Gợi Ý Tặng Quà - All rights reserved.
-      </div>
+        </Col>
+      </Row>
     </Footer>
   );
 };

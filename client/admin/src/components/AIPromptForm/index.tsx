@@ -37,6 +37,7 @@ interface AIPromptFormProps {
   onCancel: () => void;
   loading?: boolean;
 }
+
 const aiModels = {
   openai: ["gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-3.5-turbo"],
   claude: ["claude-3-sonnet", "claude-3-haiku", "claude-3-opus"],
@@ -49,12 +50,14 @@ const categories = [
   { label: "Notification", value: "notification" },
   { label: "Article", value: "article" },
 ];
+
 const AIPromptForm: React.FC<AIPromptFormProps> = ({
   open,
   isEdit,
   onCancel,
 }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedProvider, setSelectedProvider] = useState<string>("");
   const dataPrompts = useAppSelector(
     (state: RootState) => state.selectedAIPrompt
   );
@@ -64,8 +67,15 @@ const AIPromptForm: React.FC<AIPromptFormProps> = ({
   useEffect(() => {
     if (open && dataPrompts) {
       form.setFieldsValue(dataPrompts);
+      setSelectedProvider(dataPrompts.aiProvider || "");
     }
   }, [open, dataPrompts, form]);
+
+  const handleProviderChange = (value: string) => {
+    setSelectedProvider(value);
+    // Reset AI Model khi thay đổi provider
+    form.setFieldsValue({ aiModel: undefined });
+  };
 
   const handleCreatePrompt = async (values: any) => {
     try {
@@ -85,6 +95,7 @@ const AIPromptForm: React.FC<AIPromptFormProps> = ({
       setIsLoading(false);
     }
   };
+
   const handleUpdatePrompt = async (values: any) => {
     try {
       setIsLoading(true);
@@ -104,6 +115,13 @@ const AIPromptForm: React.FC<AIPromptFormProps> = ({
     }
   };
 
+  const handleCancel = () => {
+    form.resetFields();
+    setSelectedProvider("");
+    dispatch(resetPrompt());
+    onCancel();
+  };
+
   return (
     <Modal
       centered
@@ -116,7 +134,7 @@ const AIPromptForm: React.FC<AIPromptFormProps> = ({
         </Space>
       }
       open={open}
-      onCancel={onCancel}
+      onCancel={handleCancel}
       width={{
         xs: "90%",
         sm: "80%",
@@ -194,7 +212,10 @@ const AIPromptForm: React.FC<AIPromptFormProps> = ({
                       { required: true, message: "Vui lòng chọn provider!" },
                     ]}
                   >
-                    <Select placeholder="Chọn AI Provider">
+                    <Select
+                      placeholder="Chọn AI Provider"
+                      onChange={handleProviderChange}
+                    >
                       <Option value="openai">OpenAI</Option>
                       <Option value="claude">Claude</Option>
                       <Option value="gemini">Gemini</Option>
@@ -211,13 +232,16 @@ const AIPromptForm: React.FC<AIPromptFormProps> = ({
                   >
                     <Select
                       placeholder="Chọn AI Model"
-                      // disabled={!form.getFieldValue("aiProvider")}
+                      disabled={!selectedProvider}
+                      notFoundContent={
+                        !selectedProvider
+                          ? "Vui lòng chọn AI Provider trước"
+                          : "Không có model nào"
+                      }
                     >
-                      {form.getFieldValue("aiProvider") &&
+                      {selectedProvider &&
                         aiModels[
-                          form.getFieldValue(
-                            "aiProvider"
-                          ) as keyof typeof aiModels
+                          selectedProvider as keyof typeof aiModels
                         ]?.map((model) => (
                           <Option key={model} value={model}>
                             {model}
@@ -333,11 +357,7 @@ const AIPromptForm: React.FC<AIPromptFormProps> = ({
                 </Col>
                 <Col span={12}>
                   <Form.Item name="categories" label="Danh mục">
-                    <Select
-                      mode="multiple"
-                      placeholder="Chọn danh mục"
-                      options={categories}
-                    />
+                    <Select placeholder="Chọn danh mục" options={categories} />
                   </Form.Item>
                 </Col>
               </Row>
@@ -364,14 +384,7 @@ const AIPromptForm: React.FC<AIPromptFormProps> = ({
           <Divider />
           <Form.Item style={{ textAlign: "right" }}>
             <Space>
-              <Button
-                onClick={() => {
-                  form.resetFields();
-                  dispatch(resetPrompt());
-                }}
-              >
-                Hủy
-              </Button>
+              <Button onClick={handleCancel}>Hủy</Button>
               <Button type="primary" htmlType="submit" loading={isLoading}>
                 {isEdit ? "Cập nhật" : "Tạo mới"}
               </Button>

@@ -9,6 +9,7 @@ export * from "./comment.service";
 export * from "./filter.service";
 export * from "./notification.service";
 export * from "./ai_prompt.service";
-export * from "./chatbot.service";
+export * from "./chat.service";
 export * from "./content_schedule.service";
 export * from "./stats.service";
+export * from "./conversation.service";

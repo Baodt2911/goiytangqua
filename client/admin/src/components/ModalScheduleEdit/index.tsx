@@ -46,10 +46,16 @@ const ModalScheduleEdit: React.FC<ModalScheduleEditProps> = ({
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [form] = Form.useForm();
+  const [selectedFrequency, setSelectedFrequency] = useState<string>("");
+
   useEffect(() => {
     if (open && dataSchedule) {
       form.resetFields();
       form.setFieldsValue(dataSchedule);
+      setSelectedFrequency(dataSchedule.frequency || "");
+    } else if (open) {
+      form.resetFields();
+      setSelectedFrequency("");
     }
   }, [open, dataSchedule, form]);
 
@@ -61,6 +67,7 @@ const ModalScheduleEdit: React.FC<ModalScheduleEditProps> = ({
         ...values,
       });
       if (data.status >= 400) {
+        setIsLoading(false);
         return message.warning(data.message);
       }
       message.success(data.message);
@@ -76,7 +83,12 @@ const ModalScheduleEdit: React.FC<ModalScheduleEditProps> = ({
 
   const handleCancel = () => {
     form.resetFields();
+    setSelectedFrequency("");
     onCancel();
+  };
+
+  const handleFrequencyChange = (value: string) => {
+    setSelectedFrequency(value);
   };
 
   const frequencyOptions = [
@@ -243,6 +255,7 @@ const ModalScheduleEdit: React.FC<ModalScheduleEditProps> = ({
                     <Select
                       placeholder="Chọn tần suất"
                       options={frequencyOptions}
+                      onChange={handleFrequencyChange}
                     />
                   </Form.Item>
                 </Col>
@@ -255,9 +268,7 @@ const ModalScheduleEdit: React.FC<ModalScheduleEditProps> = ({
                     ]}
                   >
                     <Input
-                      placeholder={getTimePlaceholder(
-                        form.getFieldValue("frequency")
-                      )}
+                      placeholder={getTimePlaceholder(selectedFrequency)}
                     />
                   </Form.Item>
                 </Col>

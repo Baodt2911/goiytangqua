@@ -5,7 +5,6 @@ import {
   deleteRelationshipController,
   getCurrentUserController,
   getRelationshipController,
-  removeAnniversariesController,
   requestResetPasswordController,
   resetPasswordController,
   updateProfileController,
@@ -22,11 +21,10 @@ import {
   validateAddNewRelationshipRequest,
   validateObjectIdRequest,
   validateUpdateRelationshipRequest,
-  validateRemoveAnniversariesRequest,
 } from "src/middlewares";
 const router: Router = Router();
 router.get("/me", verifyRefreshToken, getCurrentUserController);
-router.post(
+router.patch(
   "/update-profile",
   verifyAccessToken,
   validateUpdateProfileRequest,
@@ -50,14 +48,14 @@ router.post(
   resetPasswordController
 );
 
+router.get("/relationship/get", verifyAccessToken, getRelationshipController);
 router.post(
   "/relationship/add-new",
   verifyAccessToken,
   validateAddNewRelationshipRequest,
   addNewRealationshipController
 );
-router.get("/relationship/get", verifyAccessToken, getRelationshipController);
-router.post(
+router.patch(
   "/relationship/update/:id",
   verifyAccessToken,
   validateUpdateRelationshipRequest,
@@ -68,11 +66,5 @@ router.delete(
   verifyAccessToken,
   validateObjectIdRequest,
   deleteRelationshipController
-);
-router.post(
-  "/relationship/:id_relationship/remove-anniversaries/:id_anniversaries",
-  verifyAccessToken,
-  validateRemoveAnniversariesRequest,
-  removeAnniversariesController
 );
 export default router;

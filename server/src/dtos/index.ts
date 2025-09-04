@@ -7,3 +7,5 @@ export * from "./filter.dto";
 export * from "./notification.dto";
 export * from "./ai_prompt.dto";
 export * from "./content_schedule.dto";
+export * from "./conversation.dto";
+export * from "./chat.dto";

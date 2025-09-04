@@ -11,6 +11,7 @@ import {
 } from "src/controllers";
 import {
   authOptional,
+  validateCommentRequest,
   validateObjectIdRequest,
   validatePostRequest,
   validateUpdatePostRequest,
@@ -23,9 +24,10 @@ router.get("/slug/:slug", getPostController);
 router.get("/all", authOptional, getAllPostsController);
 router.get("/:id/comments", validateObjectIdRequest, getCommentsController);
 router.post(
-  "/:id/comments",
+  "/:id/comment",
   verifyAccessToken,
   validateObjectIdRequest,
+  validateCommentRequest,
   createCommentController
 );
 router.post("/create", verifyAdmin, validatePostRequest, createPostController);

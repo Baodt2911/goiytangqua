@@ -7,11 +7,12 @@ export const addNewRelationshipService = async (
   data: RelationshipRequestDTO
 ) => {
   try {
-    const { name, relationshipType } = data;
+    const { name, relationshipType, anniversaries } = data;
     await _relationship.create({
       userId: user.userId,
       name,
       relationshipType,
+      anniversaries,
     });
     return {
       status: StatusCodes.CREATED,
@@ -67,13 +68,13 @@ export const updateRelationshipService = async (
     const updateFields: UpdateRelationshipRequestDTO = {};
     if (name) updateFields.name = name;
     if (relationshipType) updateFields.relationshipType = relationshipType;
+    if (anniversaries) updateFields.anniversaries = anniversaries;
     const isUpdated = await _relationship.findOneAndUpdate(
       {
         $and: [{ _id: id }, { userId: user.userId }],
       },
       {
         $set: updateFields,
-        $addToSet: { anniversaries: { $each: anniversaries } },
       }
     );
     if (!isUpdated) {
@@ -91,37 +92,7 @@ export const updateRelationshipService = async (
     throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
   }
 };
-export const removeAnniversariesService = async (
-  user: any,
-  id_relationship: string,
-  id_anniversaries: string
-) => {
-  try {
-    const isRemoved = await _relationship.findOneAndUpdate(
-      {
-        $and: [{ _id: id_relationship }, { userId: user.userId }],
-      },
-      {
-        $pull: {
-          anniversaries: { _id: new mongoose.Types.ObjectId(id_anniversaries) },
-        },
-      }
-    );
-    if (!isRemoved) {
-      return {
-        status: StatusCodes.NOT_FOUND,
-        message: "Mối quan hệ không tồn tại hoặc đã bị xóa trước đó",
-      };
-    }
-    return {
-      status: StatusCodes.OK,
-      message: "Xóa thành công",
-    };
-  } catch (error: any) {
-    console.error(error);
-    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
-  }
-};
+
 export const getRelationshipsWithAnniversaryToday = async (
   day: Number,
   month: Number

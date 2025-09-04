@@ -10,20 +10,19 @@ import MongoStore from "connect-mongo";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { configPassport, configSocket, connectMongoDb } from "./configs";
 import {
-  commentRouter,
   filterRouter,
   notificationRouter,
   otpRouter,
   postRouter,
   productRouter,
   tokenRouter,
-  relationshipRouter,
   userRouter,
   authRouter,
   imageRouter,
   aiPromptRouter,
   contentScheduleRouter,
   statsRouter,
+  chatRouter,
 } from "./routes";
 import passport from "passport";
 import scheduleAnniversaries from "./schedules/anniversary";
@@ -84,17 +83,16 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/image", imageRouter);
 app.use("/auth", authRouter);
 app.use("/user", userRouter);
-app.use("/comment", commentRouter);
 app.use("/product", productRouter);
 app.use("/token", tokenRouter);
 app.use("/post", postRouter);
 app.use("/notification", notificationRouter);
 app.use("/filter", filterRouter);
 app.use("/otp", otpRouter);
-app.use("/relationship", relationshipRouter);
 app.use("/prompt", aiPromptRouter);
 app.use("/content-schedule", contentScheduleRouter);
 app.use("/stats", statsRouter);
+app.use("/chat", chatRouter);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(StatusCodes.NOT_FOUND).json({

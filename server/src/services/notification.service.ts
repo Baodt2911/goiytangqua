@@ -3,7 +3,7 @@ import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { NotificationRequestDTO } from "src/dtos";
 import { _notification } from "src/models";
 import { io } from "src/server";
-import { callAIWithPrompt } from "src/utils/AI_service";
+import { callAIWithPrompt } from "src/utils";
 
 export const createNotificationService = async (
   data: NotificationRequestDTO

@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import { App as AntdApp } from "antd";
 import "antd/dist/reset.css";
 import "./assets/styles/index.css";
 import { SocketProvider } from "./contexts/socket/socket.provider.tsx";
@@ -10,7 +11,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
       <SocketProvider>
-        <App />
+        <AntdApp>
+          <App />
+        </AntdApp>
       </SocketProvider>
     </Provider>
   </StrictMode>

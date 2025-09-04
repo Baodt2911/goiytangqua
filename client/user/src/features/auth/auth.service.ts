@@ -22,3 +22,41 @@ export const refreshToken = async () => {
     return null;
   }
 };
+export const sendOtpAsync = async (email: string) => {
+  const res = await axios.post(`${import.meta.env.VITE_URL_API}/otp/send-otp`, {
+    email,
+  });
+  return res.data;
+};
+export const loginAsync = async (data: { email: string; password: string }) => {
+  const res = await axios.post(
+    `${import.meta.env.VITE_URL_API}/auth/login`,
+    data,
+    { withCredentials: true }
+  );
+  return res.data;
+};
+export const registerAsync = async (data: {
+  email: string;
+  password: string;
+  otp: string;
+}) => {
+  const res = await axios.post(
+    `${import.meta.env.VITE_URL_API}/auth/register`,
+    data
+  );
+  return res.data;
+};
+export const logoutAsync = async () => {
+  try {
+    await axios.post(
+      `${import.meta.env.VITE_URL_API}/auth/logout`,
+      {},
+      { withCredentials: true }
+    );
+    store.dispatch(logout());
+    window.location.reload();
+  } catch (error) {
+    console.error("Failed logout: ", error);
+  }
+};

@@ -119,3 +119,13 @@ export type Otp = Document & {
   otp: string;
   expires: Date;
 };
+export type Message = {
+  role: "user" | "assistant";
+  content: string;
+  createdAt?: Date;
+};
+export type Conversation = Document & {
+  userId: string;
+  title?: string;
+  messages: Message[];
+};

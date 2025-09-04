@@ -8,6 +8,7 @@ export const validateObjectIdRequest = (
   next: NextFunction
 ): any => {
   const { id } = req.params;
+
   if (!ObjectId.isValid(id)) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       status: StatusCodes.BAD_REQUEST,

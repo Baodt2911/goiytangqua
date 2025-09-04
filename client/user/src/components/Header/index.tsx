@@ -21,10 +21,12 @@ import {
   MoonOutlined,
 } from "@ant-design/icons";
 import logo from "../../assets/logos/logo-dark.png";
+import logoLight from "../../assets/logos/logo-light.png";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/hook";
 import { toggleTheme } from "../../features/theme/theme.slice";
 import { RootState } from "../../app/store";
+import { logoutAsync } from "../../features/auth/auth.service";
 const { Title, Text, Paragraph, Link } = Typography;
 const { Header } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -35,46 +37,52 @@ type NotificationItem = {
   createdAt: Date;
 };
 const AppHeader: React.FC = () => {
-  const [current, setCurrent] = useState("home");
+  const [current, setCurrent] = useState("");
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const list = useAppSelector((state: RootState) => state.notifications.list);
+  const list = useAppSelector((state: RootState) => state.notification.list);
+  const isAuthenticated = useAppSelector(
+    (state: RootState) => state.auth.isAuthenticated
+  );
   const theme = useAppSelector((state: RootState) => state.theme.mode);
-  console.log(theme);
-
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
-  console.log(isAuthenticated);
 
   const items: MenuItem[] = [
     {
       label: "Trang chủ",
-      key: "home",
+      key: "",
     },
     {
-      label: "Bài viết",
+      label: "Bài viết hay",
       key: "article",
     },
     {
       label: "Gợi ý quà tặng",
-      key: "suggests",
+      key: "suggest-gift",
     },
     {
       label: "Chat bot",
-      key: "bot",
+      key: "chat-bot",
     },
   ];
+
   const onClick: MenuProps["onClick"] = (e) => {
     setCurrent(e.key);
     navigate(e.key);
   };
+
+  const isDark = theme === "dark";
+
   return (
     <Header
       style={{
         display: "flex",
         alignItems: "center",
-        boxShadow: "0 2px 10px 0 #e9e9e9",
-        background: "#fff",
-        padding: "50px 50px",
+        background: isDark ? "#1f2937" : "#ffffff",
+        padding: window.innerWidth <= 768 ? "12px 20px" : "0px 70px",
+        borderBottom: isDark ? "1px solid #374151" : "1px solid #f0f0f0",
+        transition: "all 0.3s ease",
+        minHeight: "auto",
+        height: "auto",
       }}
     >
       <div
@@ -82,23 +90,29 @@ const AppHeader: React.FC = () => {
           flex: 1,
           display: "flex",
           alignItems: "center",
-          padding: "0 50px",
+          padding: window.innerWidth <= 768 ? "0 12px" : "0 20px",
+          flexWrap: "wrap",
+          gap: window.innerWidth <= 768 ? "12px" : "16px",
         }}
       >
         {/* Logo */}
-        <div
+        <a
           style={{
             display: "flex",
             alignItems: "center",
             flexShrink: 0,
           }}
+          onClick={() => navigate("/")}
         >
           <img
-            src={logo}
+            src={isDark ? logoLight : logo}
             alt="Logo"
-            style={{ height: "50px", marginRight: "12px" }}
+            style={{
+              height: window.innerWidth <= 768 ? "32px" : "40px",
+              marginRight: "12px",
+            }}
           />
-        </div>
+        </a>
         {/* Navigation */}
         <Menu
           onClick={onClick}
@@ -108,35 +122,55 @@ const AppHeader: React.FC = () => {
             flex: 1,
             borderBottom: "none",
             fontFamily: "Oswald",
-            fontSize: 18,
-            padding: "0 50px",
-            columnGap: 40,
+            fontSize: window.innerWidth <= 768 ? "14px" : "16px",
+            padding: window.innerWidth <= 768 ? "0 12px" : "0 20px",
+            columnGap: window.innerWidth <= 768 ? "16px" : "24px",
+            background: "transparent",
+            minWidth: "fit-content",
           }}
+          theme={isDark ? "dark" : "light"}
           items={items}
         />
       </div>
+
       {/* Change Theme  */}
-      <Flex gap="small" align="flex-start" vertical style={{ marginRight: 50 }}>
+      <Flex
+        gap="small"
+        align="center"
+        style={{
+          marginRight: window.innerWidth <= 768 ? "20px" : "35px",
+        }}
+      >
         <Segmented
-          size={"middle"}
+          size={window.innerWidth <= 768 ? "small" : "middle"}
           shape="round"
           options={[
             { value: "light", icon: <SunOutlined /> },
             { value: "dark", icon: <MoonOutlined /> },
           ]}
+          value={theme}
           onChange={() => dispatch(toggleTheme())}
         />
       </Flex>
+
       {/* User actions */}
-      <div style={{ display: "flex", alignItems: "center", gap: "30px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: window.innerWidth <= 768 ? "12px" : "16px",
+          flexWrap: "wrap",
+        }}
+      >
         {isAuthenticated ? (
-          <>
+          <Flex gap={30}>
             {/* WishList */}
             <Button
-              color="danger"
-              variant="solid"
+              type="primary"
+              danger
               shape="circle"
               icon={<HeartOutlined />}
+              size={window.innerWidth <= 768 ? "small" : "middle"}
             />
 
             {/* Dropdown thông báo */}
@@ -146,8 +180,8 @@ const AppHeader: React.FC = () => {
               fresh={true}
               title={
                 <Title
-                  level={3}
-                  style={{ fontFamily: "Oswald", padding: "10px" }}
+                  level={4}
+                  style={{ fontFamily: "Oswald", padding: "8px", margin: 0 }}
                 >
                   Thông báo
                 </Title>
@@ -155,8 +189,8 @@ const AppHeader: React.FC = () => {
               content={
                 <List
                   style={{
-                    width: 500,
-                    maxHeight: 500,
+                    width: window.innerWidth <= 768 ? "300px" : "400px",
+                    maxHeight: "400px",
                     overflowY: "scroll",
                   }}
                   itemLayout="horizontal"
@@ -168,18 +202,23 @@ const AppHeader: React.FC = () => {
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "start",
-                        padding: "15px 25px 15px 15px",
+                        padding: "12px 20px 12px 12px",
                         opacity: item.read ? 0.7 : 1,
                       }}
                     >
-                      <Title style={{ fontFamily: "Oswald" }} level={5}>
+                      <Title
+                        style={{ fontFamily: "Oswald", margin: 0 }}
+                        level={5}
+                      >
                         {item.title}
                       </Title>
-                      <Paragraph style={{ fontFamily: "Oswald" }}>
+                      <Paragraph
+                        style={{ fontFamily: "Oswald", margin: "8px 0" }}
+                      >
                         {item.message}
                       </Paragraph>
                       <Text
-                        style={{ fontSize: 12, fontFamily: "Oswald" }}
+                        style={{ fontSize: "12px", fontFamily: "Oswald" }}
                         italic
                         type="secondary"
                       >
@@ -199,11 +238,16 @@ const AppHeader: React.FC = () => {
                 icon={
                   <Badge count={list.length} className="cursor-pointer">
                     <BellOutlined
-                      style={{ fontSize: "20px", cursor: "pointer" }}
+                      style={{
+                        fontSize: window.innerWidth <= 768 ? "16px" : "18px",
+                        cursor: "pointer",
+                        color: isDark ? "#fff" : "#333",
+                      }}
                     />
                   </Badge>
                 }
                 type="text"
+                size={window.innerWidth <= 768 ? "small" : "middle"}
               />
             </Popover>
 
@@ -213,40 +257,52 @@ const AppHeader: React.FC = () => {
                 items: [
                   {
                     key: "profile",
-                    label: <p>Hồ sơ</p>,
+                    label: (
+                      <span onClick={() => navigate("/user-dashboard")}>
+                        Hồ sơ
+                      </span>
+                    ),
                   },
                   {
                     key: "setting",
-                    label: <p>Cài đặt</p>,
+                    label: <a onClick={() => navigate("/setting")}>Cài đặt</a>,
                   },
                   {
                     key: "logout",
-                    label: <p>Đăng xuất</p>,
+                    label: (
+                      <span
+                        style={{ color: "red" }}
+                        onClick={() => logoutAsync()}
+                      >
+                        Đăng xuất
+                      </span>
+                    ),
                   },
                 ],
               }}
               trigger={["hover"]}
-              overlayStyle={{ width: 200 }}
+              placement="bottom"
+              arrow={{ pointAtCenter: true }}
             >
               <Avatar
-                size="large"
+                size={window.innerWidth <= 768 ? "small" : "default"}
                 icon={<UserOutlined />}
                 style={{ cursor: "pointer" }}
               />
             </Dropdown>
-          </>
+          </Flex>
         ) : (
           <>
             <Button
-              type="link"
+              type="default"
               onClick={() => {
-                {
-                  navigate("/auth/login");
-                }
+                navigate("/auth/login");
               }}
               style={{
                 fontFamily: "Oswald",
-                fontSize: 18,
+                fontSize: window.innerWidth <= 768 ? "12px" : "14px",
+                height: window.innerWidth <= 768 ? "32px" : "36px",
+                padding: window.innerWidth <= 768 ? "0 12px" : "0 16px",
               }}
             >
               Đăng nhập
@@ -254,14 +310,13 @@ const AppHeader: React.FC = () => {
             <Button
               type="primary"
               style={{
-                padding: "20px 50px",
+                padding: window.innerWidth <= 768 ? "0 16px" : "0 20px",
                 fontFamily: "Oswald",
-                fontSize: 18,
+                fontSize: window.innerWidth <= 768 ? "12px" : "14px",
+                height: window.innerWidth <= 768 ? "32px" : "36px",
               }}
               onClick={() => {
-                {
-                  navigate("/auth/register");
-                }
+                navigate("/auth/register");
               }}
             >
               Đăng ký

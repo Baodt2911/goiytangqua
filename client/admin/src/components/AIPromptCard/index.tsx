@@ -246,16 +246,17 @@ const AIPromptCard: React.FC<
       </div>
 
       {/* Categories */}
-      {promptProps.categories && promptProps.categories.length > 0 && (
-        <Flex gap={5} wrap style={{ marginBottom: 12 }}>
-          <Text type="secondary" style={{ marginRight: 5, fontSize: 12 }}>
+      {promptProps.categories && (
+        <Flex gap={4} wrap style={{ marginBottom: 12 }}>
+          <Text type="secondary" style={{ marginRight: 8, fontSize: 12 }}>
             Thể loại:
           </Text>
-          {promptProps.categories.map((cat) => (
-            <Tag key={cat} color={getCategoryColor(cat)}>
-              {cat}
-            </Tag>
-          ))}
+          <Tag
+            color={getCategoryColor(promptProps.categories)}
+            style={{ margin: 0 }}
+          >
+            {promptProps.categories}
+          </Tag>
         </Flex>
       )}
 

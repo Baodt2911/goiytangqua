@@ -1,10 +1,8 @@
-import { PostType } from "../../types/post.type";
+import { PostParamsType, PostType } from "../../types/post.type";
 import axiosInstance from "../../configs/axios.config";
-import { ProductParamsType } from "../../types/product.type";
 type PostCreateProps = Omit<
   PostType,
   | "_id"
-  | "products"
   | "status"
   | "publishedAt"
   | "scheduledFor"
@@ -12,21 +10,12 @@ type PostCreateProps = Omit<
   | "isFeatured"
   | "author"
   | "generatedBy"
-> & {
-  products: string[];
-};
+>;
 type PostUpdateProps = Omit<
   PostType,
-  | "products"
-  | "publishedAt"
-  | "scheduledFor"
-  | "views"
-  | "generatedBy"
-  | "isFeatured"
-> & {
-  products: string[];
-};
-export const getAllPostAsync = async (params: Partial<ProductParamsType>) => {
+  "publishedAt" | "scheduledFor" | "views" | "generatedBy" | "isFeatured"
+>;
+export const getAllPostAsync = async (params: Partial<PostParamsType>) => {
   const res = await axiosInstance.get(`/post/all`, {
     params,
   });

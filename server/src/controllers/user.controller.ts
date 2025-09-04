@@ -233,11 +233,14 @@ export const updateProfileController = async (
 ) => {
   try {
     const user = req.user;
-    const { name, birthday, gender } = req.body;
+    const { name, birthday, gender, preferences } = req.body;
+    console.log({ name, birthday, gender, preferences });
+
     const { status, message } = await updateProfileService(user, {
       name,
       birthday,
       gender,
+      preferences,
     });
     res.status(status).json({ message });
   } catch (error: any) {

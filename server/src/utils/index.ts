@@ -1,5 +1,5 @@
 import slugify from "slugify";
-
+export * from "./AI_service";
 export const isValidString = (value: any): boolean => {
   return typeof value === "string" && value.trim().length > 0;
 };

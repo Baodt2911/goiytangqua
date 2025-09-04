@@ -44,11 +44,11 @@ export const getCurrentUserService = async (user: any) => {
         message: "Không tìm thấy người dùng",
       };
     }
-    const { name, email, gender, birthday, role } = existingUser;
+    const { name, email, gender, birthday, role, preferences } = existingUser;
     return {
       status: StatusCodes.OK,
       message: ReasonPhrases.OK,
-      element: { name, email, gender, birthday, role },
+      element: { name, email, gender, birthday, role, preferences },
     };
   } catch (error: any) {
     console.error(error);
@@ -223,11 +223,12 @@ export const updateProfileService = async (
   data: UpdateProfileRequestDTO
 ) => {
   try {
-    const { name, birthday, gender } = data;
+    const { name, birthday, gender, preferences } = data;
     const updateFields: UpdateProfileRequestDTO = {};
     if (name) updateFields.name = name;
     if (birthday) updateFields.birthday = birthday;
     if (gender) updateFields.gender = gender;
+    if (preferences) updateFields.preferences = preferences;
 
     if (Object.keys(updateFields).length === 0) {
       throw new Error("Không có trường nào hợp lệ để cập nhật");

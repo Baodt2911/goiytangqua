@@ -177,8 +177,6 @@ export const updatePostService = async (
     if (author) updateFields.author = author;
     if (aiPromptId) updateFields.aiPromptId = aiPromptId;
 
-    console.log(updateFields);
-
     const isUpdated = await _post.findByIdAndUpdate(id, {
       $set: updateFields,
     });

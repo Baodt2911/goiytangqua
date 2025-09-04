@@ -3,14 +3,13 @@ import {
   Form,
   Input,
   Button,
-  message,
   Typography,
   Divider,
   Card,
   Space,
+  App,
 } from "antd";
 import { GoogleOutlined, FacebookOutlined } from "@ant-design/icons";
-import axiosInstance from "../../configs/axios.config";
 import { useAppDispatch } from "../../app/hook";
 import {
   loginFailure,
@@ -18,39 +17,33 @@ import {
   loginSuccess,
 } from "../../features/auth/auth.slice";
 import { useNavigate } from "react-router-dom";
+import { loginAsync } from "../../features/auth/auth.service";
 interface FormLoginValues {
   email: string;
   password: string;
 }
 const URL_API: string = import.meta.env.VITE_URL_API;
 const FormLogin: React.FC = () => {
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const handleFinish = async (values: FormLoginValues) => {
     dispatch(loginStart());
-    axiosInstance
-      .post(
-        "/auth/login",
-        {
-          email: values.email,
-          password: values.password,
-        },
-        { headers: { "Skip-Auth": "true" } }
-      )
-      .then((res) => {
-        const { data } = res;
-        if (!res.statusText) {
-          return message.error(data.message);
-        }
-        dispatch(loginSuccess(data.accessToken));
-        message.success(data.message);
-        navigate("/home");
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        message.error(error.response.data.message);
-        dispatch(loginFailure(error.response.data.message));
-      });
+    try {
+      const data = await loginAsync(values);
+
+      if (data.status >= 400) {
+        dispatch(loginFailure(data.message));
+        return message.warning(data.message);
+      }
+      dispatch(loginSuccess(data.accessToken));
+      message.success(data.message);
+      navigate("/");
+    } catch (error: any) {
+      console.error("Error:", error);
+      message.error(error.response.data.message);
+      dispatch(loginFailure(error.response.data.message));
+    }
   };
   useEffect(() => {
     const handleGoogleLoginMessage = (event: {
@@ -62,7 +55,7 @@ const FormLogin: React.FC = () => {
       if (success) {
         message.success("Đăng nhập thành công");
         dispatch(loginSuccess(accessToken));
-        navigate("/home");
+        navigate("/");
       }
       dispatch(loginFailure("Đăng nhập thất bại"));
     };
@@ -72,7 +65,7 @@ const FormLogin: React.FC = () => {
     return () => {
       window.removeEventListener("message", handleGoogleLoginMessage);
     };
-  }, [navigate, dispatch]);
+  }, []);
 
   const handleGoogleLogin = async () => {
     dispatch(loginStart());
@@ -89,14 +82,6 @@ const FormLogin: React.FC = () => {
   };
 
   const handleFacebookLogin = () => {
-    axiosInstance
-      .get("/auth/me")
-      .then((response) => {
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
     message.info("Facebook login is not implemented yet!");
   };
 
@@ -175,7 +160,8 @@ const FormLogin: React.FC = () => {
         </Button>
       </Space>
       <Typography.Paragraph style={{ textAlign: "center", marginTop: 20 }}>
-        Bạn chưa có tài khoản? <a href="/register">Đăng ký</a>
+        Bạn chưa có tài khoản?{" "}
+        <a onClick={() => navigate("/auth/register")}>Đăng ký</a>
       </Typography.Paragraph>
     </Card>
   );

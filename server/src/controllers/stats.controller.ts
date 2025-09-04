@@ -1,10 +1,13 @@
 import { Request, Response } from "express";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
-import { getPromptStatsService } from "src/services";
+import { getStatsOverviewAIService } from "src/services";
 
-export const getPromptStatsController = async (req: Request, res: Response) => {
+export const getStatsOverviewAIController = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const { status, element } = await getPromptStatsService();
+    const { status, element } = await getStatsOverviewAIService();
     res.status(status).json({ status, stats: element });
   } catch (error: any) {
     console.error(error);

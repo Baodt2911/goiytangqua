@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
 
-export interface CustomSocket extends Socket {
-  decoded?: any;
+export interface CustomSocketType extends Socket {
+  user?: any;
 }

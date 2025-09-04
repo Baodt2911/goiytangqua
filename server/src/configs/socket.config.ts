@@ -1,14 +1,14 @@
 import socketEvents from "src/events";
 import { verifyAccessTokenSocket } from "src/middlewares";
-import { CustomSocket } from "src/types";
+import { CustomSocketType } from "src/types";
 
 export const configSocket = (io: any) => {
   io.use(verifyAccessTokenSocket);
-  io.on("connection", (socket: CustomSocket) => {
+  io.on("connection", (socket: CustomSocketType) => {
     console.log("<<<<<Connected to socket>>>>> : ", socket.id);
 
     socket.on("join-server", () => {
-      const { userId } = socket.decoded;
+      const { userId } = socket.user;
       socket.join(userId);
       console.log(`User ${userId} đã vào server`);
     });
