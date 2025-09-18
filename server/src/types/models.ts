@@ -1,4 +1,8 @@
 import { Document, ObjectId } from "mongoose";
+export type BaseModel = Document & {
+  createdAt: Date;
+  updatedAt: Date;
+};
 export type User = Document & {
   name?: string;
   email: string;
@@ -9,7 +13,7 @@ export type User = Document & {
   preferences?: string[];
   role: "admin" | "user";
   googleRefreshToken?: string;
-};
+} & BaseModel;
 export type Post = Document & {
   title: string;
   thumbnail?: string;
@@ -27,7 +31,7 @@ export type Post = Document & {
   author: string;
   generatedBy: "human" | "ai" | "hybrid";
   aiPromptId?: ObjectId;
-};
+} & BaseModel;
 
 export type AIPrompt = Document & {
   name: string; // "Daily Tech News", "Product Review"
@@ -50,7 +54,7 @@ export type AIPrompt = Document & {
   availableVariables?: string[]; // ["gender", "age", "relation"]
   // Status
   isActive: boolean;
-};
+} & BaseModel;
 
 // 3. Content Schedule - Automation timing
 export type ContentSchedule = Document & {
@@ -69,12 +73,14 @@ export type ContentSchedule = Document & {
   status: "active" | "paused" | "completed";
   lastRunAt?: Date;
   totalRuns: number;
-};
+} & BaseModel;
+
 export type Comment = Document & {
   content: string;
   postId: ObjectId;
   userId: ObjectId;
-};
+} & BaseModel;
+
 export type Product = Document & {
   name: string;
   slug: string;
@@ -84,12 +90,14 @@ export type Product = Document & {
   description: string;
   tags?: string[];
   category: string;
-};
+} & BaseModel;
+
 export type RefreshToken = Document & {
   token: string;
   userId: ObjectId;
   expires: Date;
 };
+
 export type Relationship = Document & {
   userId: ObjectId;
   name: string;
@@ -103,13 +111,15 @@ export type Relationship = Document & {
     };
   }[];
 };
+
 export type Notification = Document & {
   userId: ObjectId;
   relationshipId: ObjectId;
   message: string;
   title: string;
   read: boolean;
-};
+} & BaseModel;
+
 export type Filter = Document & {
   type: string;
   options: string[];
@@ -118,14 +128,16 @@ export type Otp = Document & {
   email: string;
   otp: string;
   expires: Date;
-};
+} & BaseModel;
+
 export type Message = {
   role: "user" | "assistant";
   content: string;
   createdAt?: Date;
 };
+
 export type Conversation = Document & {
   userId: string;
   title?: string;
   messages: Message[];
-};
+} & BaseModel;

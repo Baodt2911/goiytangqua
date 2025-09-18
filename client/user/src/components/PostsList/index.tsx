@@ -8,6 +8,7 @@ import {
 } from "../../features/post/post.slice";
 import { getAllPostAsync } from "../../features/post/post.service";
 import { RootState } from "../../app/store";
+import { getCloudinaryUrl } from "../../utils/image";
 
 const { Text, Title } = Typography;
 const SkeletonListCard: React.FC = () => {
@@ -24,17 +25,34 @@ const SkeletonListCard: React.FC = () => {
     </Row>
   );
 };
-const PostList: React.FC = () => {
+interface PostListProps {
+  searchKeyword?: string;
+  filters?: Record<string, string | string[]>;
+  isSearching?: boolean;
+}
+
+const PostList: React.FC<PostListProps> = ({ searchKeyword, filters, isSearching }) => {
   const { posts, loading } = useAppSelector((state: RootState) => state.post);
   const dispatch = useAppDispatch();
+  
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         dispatch(getPostsStart());
-        const { posts } = await getAllPostAsync({
+        
+        // Build search parameters
+        const searchParams: any = {
           pageSize: 6,
-        });
+        };
+        
+        if (searchKeyword) {
+          searchParams.search = searchKeyword;
+        }
+        if (filters) {
+          searchParams.filters = filters;
+        }
 
+        const { posts } = await getAllPostAsync(searchParams);
         dispatch(getPostsSuccess(posts));
       } catch (error: any) {
         console.log(error);
@@ -42,7 +60,7 @@ const PostList: React.FC = () => {
       }
     };
     fetchPosts();
-  }, []);
+  }, [searchKeyword, filters, isSearching, dispatch]);
 
   return (
     <>
@@ -54,6 +72,7 @@ const PostList: React.FC = () => {
           grid={{ gutter: 16, column: 2 }}
           dataSource={posts}
           loading={loading}
+          locale={{ emptyText: "Không có bài viết nào liên quan đến tìm kiếm của bạn." }}
           renderItem={(item) => (
             <List.Item>
               <Card
@@ -61,9 +80,9 @@ const PostList: React.FC = () => {
                 cover={
                   <img
                     alt={item.title}
-                    src={item.thumbnail}
+                    src={getCloudinaryUrl(item.thumbnail)}
                     style={{
-                      height: 120,
+                      height: 200,
                       objectFit: "cover",
                     }}
                   />

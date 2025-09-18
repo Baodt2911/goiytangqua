@@ -3,7 +3,7 @@ import { Post } from "src/types";
 const postSchema = new Schema<Post>(
   {
     title: { type: String, required: true },
-    thumbnail: { type: String, required: false },
+    thumbnail: { type: String, default: "https://res.cloudinary.com/goiytangqua/image/upload/v1757424505/images_product/default/thumnail-goiytangqua.png" },
     description: { type: String },
     slug: { type: String, required: true, unique: true },
     content: { type: String, required: true },

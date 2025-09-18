@@ -28,33 +28,11 @@ const productSlice = createSlice({
       state.error = action.payload;
     },
 
-    // CREATE
-    createProduct: (state, action: PayloadAction<ProductType>) => {
-      state.products.push(action.payload);
-    },
-
-    // UPDATE
-    updateProduct: (state, action: PayloadAction<ProductType>) => {
-      const index = state.products.findIndex(
-        (p) => p._id === action.payload._id
-      );
-      if (index !== -1) {
-        state.products[index] = action.payload;
-      }
-    },
-
-    // DELETE
-    deleteProduct: (state, action: PayloadAction<string>) => {
-      state.products = state.products.filter((p) => p._id !== action.payload);
-    },
   },
 });
 export const {
   getProductsStart,
   getProductsSuccess,
   getProductsFailure,
-  createProduct,
-  updateProduct,
-  deleteProduct,
 } = productSlice.actions;
 export default productSlice.reducer;

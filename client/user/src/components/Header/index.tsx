@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Layout,
   Menu,
@@ -22,11 +21,11 @@ import {
 } from "@ant-design/icons";
 import logo from "../../assets/logos/logo-dark.png";
 import logoLight from "../../assets/logos/logo-light.png";
-import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/hook";
 import { toggleTheme } from "../../features/theme/theme.slice";
 import { RootState } from "../../app/store";
 import { logoutAsync } from "../../features/auth/auth.service";
+import { useNavigation } from "../../hooks/useNavigation";
 const { Title, Text, Paragraph, Link } = Typography;
 const { Header } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -37,8 +36,7 @@ type NotificationItem = {
   createdAt: Date;
 };
 const AppHeader: React.FC = () => {
-  const [current, setCurrent] = useState("");
-  const navigate = useNavigate();
+  const { currentPath, navigateTo } = useNavigation();
   const dispatch = useAppDispatch();
   const list = useAppSelector((state: RootState) => state.notification.list);
   const isAuthenticated = useAppSelector(
@@ -49,11 +47,11 @@ const AppHeader: React.FC = () => {
   const items: MenuItem[] = [
     {
       label: "Trang chủ",
-      key: "",
+      key: "home",
     },
     {
       label: "Bài viết hay",
-      key: "article",
+      key: "best-articles",
     },
     {
       label: "Gợi ý quà tặng",
@@ -66,8 +64,7 @@ const AppHeader: React.FC = () => {
   ];
 
   const onClick: MenuProps["onClick"] = (e) => {
-    setCurrent(e.key);
-    navigate(e.key);
+    navigateTo(e.key);
   };
 
   const isDark = theme === "dark";
@@ -102,7 +99,7 @@ const AppHeader: React.FC = () => {
             alignItems: "center",
             flexShrink: 0,
           }}
-          onClick={() => navigate("/")}
+          onClick={() => navigateTo("/")}
         >
           <img
             src={isDark ? logoLight : logo}
@@ -116,7 +113,7 @@ const AppHeader: React.FC = () => {
         {/* Navigation */}
         <Menu
           onClick={onClick}
-          selectedKeys={[current]}
+          selectedKeys={[currentPath]}
           mode="horizontal"
           style={{
             flex: 1,
@@ -258,14 +255,26 @@ const AppHeader: React.FC = () => {
                   {
                     key: "profile",
                     label: (
-                      <span onClick={() => navigate("/user-dashboard")}>
+                      <span
+                        onClick={() => {
+                          navigateTo("/user-dashboard");
+                        }}
+                      >
                         Hồ sơ
                       </span>
                     ),
                   },
                   {
                     key: "setting",
-                    label: <a onClick={() => navigate("/setting")}>Cài đặt</a>,
+                    label: (
+                      <a
+                        onClick={() => {
+                          navigateTo("/setting");
+                        }}
+                      >
+                        Cài đặt
+                      </a>
+                    ),
                   },
                   {
                     key: "logout",
@@ -296,7 +305,7 @@ const AppHeader: React.FC = () => {
             <Button
               type="default"
               onClick={() => {
-                navigate("/auth/login");
+                navigateTo("/auth/login");
               }}
               style={{
                 fontFamily: "Oswald",
@@ -316,7 +325,7 @@ const AppHeader: React.FC = () => {
                 height: window.innerWidth <= 768 ? "32px" : "36px",
               }}
               onClick={() => {
-                navigate("/auth/register");
+                navigateTo("/auth/register");
               }}
             >
               Đăng ký

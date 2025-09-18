@@ -6,7 +6,10 @@ import { CopyOutlined } from "@ant-design/icons";
 import { MessageType } from "../../types/message.type";
 const { Text } = Typography;
 
-const MessageBubble: React.FC<{ message: MessageType }> = ({ message }) => {
+const MessageBubble: React.FC<{
+  message: MessageType;
+  isStreaming?: boolean;
+}> = ({ message, isStreaming = false }) => {
   const isUser = message.role === "user";
   const [copied, setCopied] = useState(false);
 
@@ -49,11 +52,35 @@ const MessageBubble: React.FC<{ message: MessageType }> = ({ message }) => {
                 type="text"
                 icon={<CopyOutlined />}
                 onClick={handleCopy}
+                disabled={isStreaming}
               />
             </Tooltip>
           </Space>
         </Flex>
-        <Text style={{ whiteSpace: "pre-wrap" }}>{message.content}</Text>
+        <Text style={{ whiteSpace: "pre-wrap" }}>
+          {message.content}
+          {isStreaming && (
+            <span
+              style={{
+                color: "#666",
+                marginLeft: "4px",
+                animation: "typing 1.4s infinite",
+                display: "inline-block",
+              }}
+            >
+              ...
+            </span>
+          )}
+        </Text>
+        <style>
+          {`
+            @keyframes typing {
+              0%, 20% { opacity: 1; }
+              40%, 60% { opacity: 0.3; }
+              80%, 100% { opacity: 1; }
+            }
+          `}
+        </style>
       </Card>
       {isUser && (
         <Avatar style={{ background: "#FF6B81" }} size={36}>
@@ -63,4 +90,5 @@ const MessageBubble: React.FC<{ message: MessageType }> = ({ message }) => {
     </Flex>
   );
 };
+
 export default MessageBubble;

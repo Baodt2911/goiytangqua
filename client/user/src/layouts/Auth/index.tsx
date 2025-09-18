@@ -1,7 +1,6 @@
 import { Outlet } from "react-router-dom";
 import logo from "../../assets/logos/logo-dark.png";
 import { Layout } from "antd";
-import React from "react";
 const AuthLayout: React.FC = () => {
   return (
     <Layout

@@ -51,7 +51,7 @@ export const createPostService = async (data: PostRequestDTO) => {
 };
 export const getPostService = async (slug: string) => {
   try {
-    const existingPosts = await _post.findOne({ slug });
+    const existingPosts = await _post.findOne({ slug }).populate("products");
     if (!existingPosts) {
       return {
         status: StatusCodes.NOT_FOUND,
@@ -67,20 +67,24 @@ export const getPostService = async (slug: string) => {
     throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
   }
 };
+export const getBestPostService = async () => {
+  try {
+    const existingPosts = await _post.find({status: "published"}).populate("products").sort({views: -1}).limit(10);
+    return {
+      status: StatusCodes.OK,
+      element: existingPosts,
+    };
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
 export const getAllPostsService = async (
   viewer: any,
-  filters: Record<string, string>,
   data: Partial<getAllPostRequestQueryDTO>
 ) => {
   try {
-    const {
-      page = 1,
-      pageSize = 10,
-      search,
-      status,
-      isFeatured,
-      generatedBy,
-    } = data;
+    const { page = 1, pageSize = 10, search, isFeatured, generatedBy, tags, filters } = data;
     let query: any = {};
 
     if (!viewer || viewer.role !== "admin") {
@@ -91,10 +95,6 @@ export const getAllPostsService = async (
       query.title = { $regex: `^${search}`, $options: "i" };
     }
 
-    if (status) {
-      query.status = status;
-    }
-
     if (isFeatured) {
       query.isFeatured = isFeatured;
     }
@@ -102,11 +102,18 @@ export const getAllPostsService = async (
     if (generatedBy) {
       query.generatedBy = generatedBy;
     }
-
+    
     if (filters) {
       query.$and = Object.entries(filters).map(([key, value]) => ({
         [`filters.${key}`]: value,
       }));
+    }
+    console.log(query);
+
+    if (tags) {
+      query.tags = {
+        $in: tags.split(","),
+      };
     }
 
     const skip = (page - 1) * pageSize;
@@ -122,6 +129,7 @@ export const getAllPostsService = async (
           ? ""
           : "-status -publishedAt -scheduledFor -views -generatedBy -aiPromptId"
       )
+      .populate("products")
       .lean();
 
     if (!viewer || viewer.role !== "admin") {

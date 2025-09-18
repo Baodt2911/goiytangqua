@@ -12,9 +12,8 @@ import AIPromptList from "../../components/AIPromptList";
 import { useAppDispatch, useAppSelector } from "../../app/hook";
 import { resetPrompt } from "../../features/ai_prompt/selectedAIPrompt.slice";
 import ModalSchedule from "../../components/ModalSchedule";
-import { getStatsOverviewAIAsync } from "../../features/stats/stats.service";
-import { setStatsAI } from "../../features/stats/stats_ai.slice";
 import { RootState } from "../../app/store";
+import { fetchStatsAI } from "../../features/stats/stats.slice";
 
 const { Title, Text } = Typography;
 
@@ -24,9 +23,10 @@ const AIPrompt: React.FC = () => {
     useState<boolean>(false);
   const [aiPromptId, setAIPromptId] = useState<string>("");
   const [isEdit, setIsEdit] = useState<boolean>(false);
-  const dataStats = useAppSelector((state: RootState) => state.statsAI);
+  const {
+    ai: { stats },
+  } = useAppSelector((state: RootState) => state.stats);
   const dispatch = useAppDispatch();
-
   const onOpenModalSchedule = (aiPromptId: string) => {
     setAIPromptId(aiPromptId);
     setIsOpenModalSchedule(true);
@@ -52,15 +52,7 @@ const AIPrompt: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const { stats } = await getStatsOverviewAIAsync();
-        dispatch(setStatsAI(stats));
-      } catch (error: any) {
-        console.log(error.message);
-      }
-    };
-    fetchStats();
+    dispatch(fetchStatsAI());
   }, []);
 
   return (
@@ -169,7 +161,7 @@ const AIPrompt: React.FC = () => {
                     Tổng số Prompts
                   </Text>
                 }
-                value={dataStats.total_prompt}
+                value={stats?.total_prompt}
                 valueStyle={{
                   fontSize: "28px",
                   fontWeight: 600,
@@ -221,10 +213,10 @@ const AIPrompt: React.FC = () => {
                       fontWeight: 500,
                     }}
                   >
-                    Prompt đang chạy
+                    Prompts đang chạy
                   </Text>
                 }
-                value={dataStats.active_prompt}
+                value={stats?.active_prompt}
                 valueStyle={{
                   fontSize: "28px",
                   fontWeight: 600,
@@ -279,7 +271,7 @@ const AIPrompt: React.FC = () => {
                     Số lịch trình
                   </Text>
                 }
-                value={dataStats.total_schedule}
+                value={stats?.total_schedule}
                 valueStyle={{
                   fontSize: "28px",
                   fontWeight: 600,
@@ -329,10 +321,10 @@ const AIPrompt: React.FC = () => {
                       fontWeight: 500,
                     }}
                   >
-                    Đang chạy
+                    Schedules đang chạy
                   </Text>
                 }
-                value={dataStats.active_schedule}
+                value={stats?.active_schedule}
                 valueStyle={{
                   fontSize: "28px",
                   fontWeight: 600,

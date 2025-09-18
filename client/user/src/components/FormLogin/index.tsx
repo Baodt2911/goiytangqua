@@ -10,14 +10,17 @@ import {
   App,
 } from "antd";
 import { GoogleOutlined, FacebookOutlined } from "@ant-design/icons";
-import { useAppDispatch } from "../../app/hook";
+import { useAppDispatch, useAppSelector } from "../../app/hook";
 import {
   loginFailure,
   loginStart,
   loginSuccess,
 } from "../../features/auth/auth.slice";
-import { useNavigate } from "react-router-dom";
 import { loginAsync } from "../../features/auth/auth.service";
+import { getCurrentUserAsync } from "../../features/user/user.service";
+import { setUser } from "../../features/user/user.slice";
+import { useNavigate } from "react-router-dom";
+import { RootState } from "../../app/store";
 interface FormLoginValues {
   email: string;
   password: string;
@@ -25,6 +28,9 @@ interface FormLoginValues {
 const URL_API: string = import.meta.env.VITE_URL_API;
 const FormLogin: React.FC = () => {
   const { message } = App.useApp();
+  const currentPath = useAppSelector(
+    (state: RootState) => state.navigation.currentPath
+  );
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const handleFinish = async (values: FormLoginValues) => {
@@ -38,7 +44,9 @@ const FormLogin: React.FC = () => {
       }
       dispatch(loginSuccess(data.accessToken));
       message.success(data.message);
-      navigate("/");
+      const user = await getCurrentUserAsync();
+      dispatch(setUser(user));
+      navigate("/" + currentPath);
     } catch (error: any) {
       console.error("Error:", error);
       message.error(error.response.data.message);
@@ -46,7 +54,7 @@ const FormLogin: React.FC = () => {
     }
   };
   useEffect(() => {
-    const handleGoogleLoginMessage = (event: {
+    const handleGoogleLoginMessage = async (event: {
       origin: string;
       data: { success: boolean; accessToken: string };
     }) => {
@@ -55,7 +63,9 @@ const FormLogin: React.FC = () => {
       if (success) {
         message.success("Đăng nhập thành công");
         dispatch(loginSuccess(accessToken));
-        navigate("/");
+        const user = await getCurrentUserAsync();
+        dispatch(setUser(user));
+        navigate("/" + currentPath);
       }
       dispatch(loginFailure("Đăng nhập thất bại"));
     };

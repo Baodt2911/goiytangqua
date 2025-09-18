@@ -16,9 +16,8 @@ export const refreshToken = async () => {
       store.dispatch(logout());
     }
     return accessToken;
-  } catch (error) {
-    console.error("Failed refresh token:", error);
-
+  } catch {
+    store.dispatch(logout());
     return null;
   }
 };

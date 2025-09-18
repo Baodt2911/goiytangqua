@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import LoginPage from "./pages/Login";
 import AuthLayout from "./layouts/Auth";
 import MainLayout from "./layouts/Main";
@@ -16,7 +21,12 @@ import ChatBotPage from "./pages/Chatbot";
 import ChatLayout from "./layouts/Chat";
 import HomePage from "./pages/Home";
 import ArticlePage from "./pages/Article";
+import TagArticlesPage from "./pages/TagArticles";
+import BestArticlePage from "./pages/BestArticle";
 import RegisterPage from "./pages/Register";
+import NotFound from "./pages/NotFound";
+import GuestRoute from "./components/GuestRoute";
+import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -57,18 +67,29 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<MainLayout />}>
-            <Route path="" element={<HomePage />} />
+            <Route index element={<Navigate to="home" replace />} />
+            <Route path="home" element={<HomePage />} />
+            <Route path="article/tag/:tagName" element={<TagArticlesPage />} />
             <Route path="article/:slug" element={<ArticlePage />} />
+            <Route path="best-articles" element={<BestArticlePage />} />
             <Route path="suggest-gift" element={<SuggestGiftPage />} />
-            <Route path="user-dashboard" element={<UserDashboardPage />} />
+            <Route element={<PrivateRoute />}>
+              <Route path="user-dashboard" element={<UserDashboardPage />} />
+            </Route>
           </Route>
+
           <Route path="/" element={<ChatLayout />}>
             <Route path="chat-bot" element={<ChatBotPage />} />
           </Route>
-          <Route path="/auth" element={<AuthLayout />}>
-            <Route path="login" element={<LoginPage />} />
-            <Route path="register" element={<RegisterPage />} />
+
+          <Route element={<GuestRoute />}>
+            <Route path="/auth" element={<AuthLayout />}>
+              <Route path="login" element={<LoginPage />} />
+              <Route path="register" element={<RegisterPage />} />
+            </Route>
           </Route>
+          {/* Catch-all route for 404 - must be last */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </ConfigProvider>

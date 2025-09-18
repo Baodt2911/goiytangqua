@@ -1,6 +1,3 @@
-import { Document } from "mongoose";
-import { Post } from "src/types";
-
 export type PostRequestDTO = {
   title: string;
   thumbnail?: string;
@@ -32,7 +29,8 @@ export type getAllPostRequestQueryDTO = {
   page: number;
   pageSize: number;
   search: string;
-  status: "draft" | "published" | "scheduled";
   isFeatured: boolean;
   generatedBy: "human" | "ai" | "hybrid";
+  tags: string;
+  filters?: Record<string, string>;
 };

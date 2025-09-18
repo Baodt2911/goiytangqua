@@ -11,35 +11,37 @@ import {
   getPostService,
   getAllPostsService,
   deletePostService,
+  getBestPostService,
   // increaseViewService,
 } from "src/services";
 export const getAllPostsController = async (
   req: Request<
     {},
     {},
-    { filters: Record<string, string> },
+    {},
     Partial<getAllPostRequestQueryDTO>
   >,
   res: Response
 ) => {
   try {
-    const { filters } = req.body;
     const viewer = req.user;
     const {
       page = 1,
       pageSize = 10,
       search,
-      status: Status,
       isFeatured,
       generatedBy,
+      tags,
+      filters
     } = req.query;
-    const { status, element } = await getAllPostsService(viewer, filters, {
+    const { status, element } = await getAllPostsService(viewer, {
       page: +page,
       pageSize: +pageSize,
       search,
-      status: Status,
       isFeatured,
       generatedBy,
+      tags,
+      filters
     });
     res.status(status).json({
       status,
@@ -66,6 +68,24 @@ export const getPostController = async (
       status,
       message,
       post: element,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      error: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
+    });
+  }
+};
+export const getBestPostController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { status, element } = await getBestPostService();
+    res.status(status).json({
+      status,
+      posts: element,
     });
   } catch (error: any) {
     console.error(error);

@@ -1,20 +1,8 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import logo from "../../assets/logos/logo-dark.png";
 import { Layout } from "antd";
-import React, { useEffect } from "react";
-import { useAppSelector } from "../../app/hook";
-import { RootState } from "../../app/store";
+import React from "react";
 const AuthLayout: React.FC = () => {
-  const isAuthenticated = useAppSelector(
-    (state: RootState) => state.auth.isAuthenticated
-  );
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/dashboard");
-    }
-  }, [isAuthenticated]);
-
   return (
     <Layout
       style={{

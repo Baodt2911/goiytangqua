@@ -7,6 +7,7 @@ import {
   Tag,
   Descriptions,
   Skeleton,
+  Result,
 } from "antd";
 import {
   EditOutlined,
@@ -14,12 +15,13 @@ import {
   PlayCircleOutlined,
   PauseCircleOutlined,
   CheckCircleOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import ModalScheduleEdit from "../ModalScheduleEdit";
 import { getScheduleAsync } from "../../features/schedule/schedule.service";
 import { useAppDispatch, useAppSelector } from "../../app/hook";
 import { RootState } from "../../app/store";
-import { setSchedule } from "../../features/schedule/schedule.slice";
+import { resetSchedule, setSchedule } from "../../features/schedule/schedule.slice";
 
 const { Title } = Typography;
 
@@ -97,13 +99,17 @@ const ModalSchedule: React.FC<ModalScheduleProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const dataSchedule = useAppSelector((state: RootState) => state.schedule);
   const dispatch = useAppDispatch();
-
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
         setIsLoading(true);
         const data = await getScheduleAsync(aiPromptId);
-        dispatch(setSchedule(data.schedule));
+        if(data.schedule){
+          dispatch(setSchedule(data.schedule));
+        }
+        else{
+          dispatch(resetSchedule());
+        }
         setIsLoading(false);
       } catch (error: any) {
         console.log(error);
@@ -123,9 +129,6 @@ const ModalSchedule: React.FC<ModalScheduleProps> = ({
     setIsEditModalOpen(false);
   };
 
-  if (!dataSchedule) {
-    return null;
-  }
 
   return (
     <>
@@ -145,14 +148,15 @@ const ModalSchedule: React.FC<ModalScheduleProps> = ({
           <div style={{ textAlign: "right" }}>
             <Space>
               <Button onClick={onCancel}>Đóng</Button>
-
-              <Button
-                type="primary"
-                icon={<EditOutlined />}
-                onClick={handleEdit}
-              >
-                Chỉnh sửa
-              </Button>
+              {dataSchedule.aiPromptId && (
+                <Button
+                  type="primary"
+                  icon={<EditOutlined />}
+                  onClick={handleEdit}
+                >
+                  Chỉnh sửa
+                </Button>
+              )}
             </Space>
           </div>
         }
@@ -160,6 +164,22 @@ const ModalSchedule: React.FC<ModalScheduleProps> = ({
       >
         {isLoading ? (
           <Skeleton active />
+        ) : !dataSchedule.aiPromptId ? (
+          <Result
+            icon={<SettingOutlined style={{ color: '#faad14' }} />}
+            title="Chưa thiết lập lịch trình"
+            subTitle="Bạn chưa thiết lập lịch trình cho AI Prompt này. Hãy thiết lập để tự động tạo nội dung theo lịch."
+            extra={
+              <Button
+                type="primary"
+                icon={<SettingOutlined />}
+                onClick={handleEdit}
+                size="large"
+              >
+                Thiết lập lịch trình
+              </Button>
+            }
+          />
         ) : (
           <div style={{ padding: "16px 0" }}>
             {/* Basic Information */}
@@ -223,7 +243,11 @@ const ModalSchedule: React.FC<ModalScheduleProps> = ({
       </Modal>
 
       {/* Edit Modal */}
-      <ModalScheduleEdit open={isEditModalOpen} onCancel={handleEditCancel} />
+      <ModalScheduleEdit 
+        open={isEditModalOpen} 
+        onCancel={handleEditCancel} 
+        aiPromptId={aiPromptId}
+      />
     </>
   );
 };

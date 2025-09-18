@@ -1,155 +1,130 @@
 import {
   Button,
-  Checkbox,
   Flex,
   Radio,
   Select,
-  Slider,
   Space,
   Typography,
+  Spin,
+  message,
 } from "antd";
-import React, { useState } from "react";
-const { Title } = Typography;
-const GiftFilter: React.FC = () => {
-  const [filters, setFilters] = useState({
-    career: "",
-    zodiac: "",
-    interests: [],
-    gender: "",
-    occasion: "",
-    ageRange: [18, 30],
-    relationship: "",
-    priceRange: [100000, 5000000],
-    category: "",
-    personality: "",
-    trend: false,
-  });
-  const zodiacOptions = [
-    { value: "aries", label: "Bạch Dương" },
-    { value: "taurus", label: "Kim Ngưu" },
-    { value: "gemini", label: "Song Tử" },
-    { value: "cancer", label: "Cự Giải" },
-    { value: "leo", label: "Sư Tử" },
-    { value: "virgo", label: "Xử Nữ" },
-    { value: "libra", label: "Thiên Bình" },
-    { value: "scorpio", label: "Bọ Cạp" },
-    { value: "sagittarius", label: "Nhân Mã" },
-    { value: "capricorn", label: "Ma Kết" },
-    { value: "aquarius", label: "Bảo Bình" },
-    { value: "pisces", label: "Song Ngư" },
-  ];
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../app/store";
+import { getFiltersAsync } from "../../features/filter/filter.service";
+import { 
+  getFiltersStart, 
+  getFiltersSuccess, 
+  getFiltersFailure 
+} from "../../features/filter/filter.slice";
+import { FilterType } from "../../types/filter.type";
 
-  const priceOptions = [
-    { range: [0, 500000], label: "Dưới 500k" },
-    { range: [500000, 1000000], label: "Từ 500k đến 1tr" },
-    { range: [1000000, 2000000], label: "Từ 1tr đến 2tr" },
-    { range: [2000000, 3000000], label: "Từ 2tr đến 3tr" },
-    { range: [3000000, null], label: "Trên 3tr" },
-  ];
-  const handleChange = (
-    field: string,
-    value: string | number | boolean | []
-  ) => {
-    const updatedFilters = { ...filters, [field]: value };
-    setFilters(updatedFilters);
-    console.log(updatedFilters);
+const { Title } = Typography;
+
+interface GiftFilterProps {
+  onApplyFilters?: (filters: Record<string, string | string[]>) => void;
+  onClearFilters?: () => void;
+}
+
+const GiftFilter: React.FC<GiftFilterProps> = ({ onApplyFilters, onClearFilters }) => {
+  const dispatch = useDispatch();
+  const { filters: filterData, loading } = useSelector((state: RootState) => state.filter);
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string | string[]>>({});
+
+  // Fetch filter data from API
+  useEffect(() => {
+    const fetchFilters = async () => {
+      try {
+        dispatch(getFiltersStart());
+        const data = await getFiltersAsync();
+        
+        if (data.status === 200) {
+          dispatch(getFiltersSuccess(data.filters));
+          // Initialize selected filters state
+          const initialFilters: Record<string, string | string[]> = {};
+          data.filters.forEach((filter: FilterType) => {
+            if (filter.type === 'Sở thích') {
+              initialFilters[filter.type] = [];
+            } else {
+              initialFilters[filter.type] = '';
+            }
+          });
+          setSelectedFilters(initialFilters);
+        }
+      } catch (error: any) {
+        dispatch(getFiltersFailure(error.message || 'Không thể tải dữ liệu bộ lọc'));
+        message.error('Không thể tải dữ liệu bộ lọc');
+      }
+    };
+
+    fetchFilters();
+  }, [dispatch]);
+
+  const handleFilterChange = (filterType: string, value: string | string[]) => {
+    setSelectedFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
   };
 
-  return (
-    <Flex
-      style={{
-        width: "100%",
-        padding: "50px",
-        gap: 50,
-      }}
-      vertical
-    >
-      {/* Nhóm thông tin cá nhân */}
-      <Flex style={{ width: "100%" }} gap={"middle"}>
-        <Space direction="vertical" style={{ flex: 1 }}>
-          <Title level={5}>Giới tính</Title>
-          <Radio.Group
-            name="gender"
-            onChange={(e) => handleChange("gender", e.target.value)}
-            options={[
-              { value: "male", label: "Nam" },
-              { value: "female", label: "Nữ" },
-            ]}
-          />
-        </Space>
+  const handleApplyFiltersClick = () => {
+    // Only include filters that have values
+    const filtersWithValues: Record<string, string | string[]> = {};
+    
+    Object.entries(selectedFilters).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        // For arrays, only include if not empty
+        if (value.length > 0) {
+          filtersWithValues[key] = value;
+        }
+      } else {
+        // For strings, only include if not empty
+        if (value && value.trim() !== '') {
+          filtersWithValues[key] = value;
+        }
+      }
+    });
+    
+    console.log('Applied filters:', filtersWithValues);
+    onApplyFilters?.(filtersWithValues);
+  };
 
-        <Space direction="vertical" style={{ flex: 1 }}>
-          <Title level={5}>Tuổi</Title>
-          <Slider
-            range={{ draggableTrack: true }}
-            defaultValue={[18, 30]}
-            min={1}
-            max={100}
-            // onChange={(value) => handleChange("age", value)}
-          />
-        </Space>
+  const handleClearFiltersClick = () => {
+    const clearedFilters: Record<string, string | string[]> = {};
+    filterData.forEach(filter => {
+      if (filter.type === 'Sở thích') {
+        clearedFilters[filter.type] = [];
+      } else {
+        clearedFilters[filter.type] = '';
+      }
+    });
+    setSelectedFilters(clearedFilters);
+    onClearFilters?.();
+  };
 
-        <Space direction="vertical" style={{ flex: 1 }}>
-          <Title level={5}>Mối quan hệ</Title>
+  // Render filter component based on type
+  const renderFilterComponent = (filter: FilterType) => {
+    const { type, options } = filter;
+    const value = selectedFilters[type];
+
+    // Special handling for different filter types
+    switch (type) {
+      case 'Sở thích':
+        return (
           <Select
+            mode="multiple"
             style={{ width: "100%" }}
-            placeholder="Chọn mối quan hệ"
-            onChange={(value) => handleChange("relationship", value)}
-            // options={relationshipOptions}
-          />
-        </Space>
-
-        <Space direction="vertical" style={{ flex: 1 }}>
-          <Title level={5}>Dịp lễ</Title>
-          <Select
-            style={{ width: "100%" }}
-            placeholder="Chọn dịp lễ"
-            onChange={(value) => handleChange("relationship", value)}
-            // options={relationshipOptions}
-          />
-        </Space>
-      </Flex>
-
-      {/* Nhóm sở thích và tính cách */}
-      <Flex style={{ width: "100%" }} gap={"middle"}>
-        <Space direction="vertical" style={{ flex: 2 }}>
-          <Title level={5}>Sở thích</Title>
-          <Select
-            style={{ width: "100%" }}
-            mode="tags"
-            placeholder="Nhập sở thích"
-            // options={hobbyOptions}
-            onChange={(value) => handleChange("interests", value)}
-            maxCount={10}
+            placeholder={`Chọn ${type.toLowerCase()}`}
+            value={value as string[]}
+            onChange={(val) => handleFilterChange(type, val)}
+            options={options.map(option => ({ label: option, value: option }))}
+            maxTagCount="responsive"
             showSearch
           />
-        </Space>
-
-        <Space direction="vertical" style={{ flex: 1 }}>
-          <Title level={5}>Tính cách</Title>
-          <Select
-            style={{ width: "100%" }}
-            placeholder="Chọn tính cách"
-            onChange={(value) => handleChange("personality", value)}
-            // options={personalityOptions}
-          />
-        </Space>
-
-        <Space direction="vertical" style={{ flex: 1 }}>
-          <Title level={5}>Cung hoàng đạo</Title>
-          <Select
-            style={{ width: "100%" }}
-            placeholder="Chọn cung hoàng đạo"
-            onChange={(value) => handleChange("zodiac", value)}
-            options={zodiacOptions}
-          />
-        </Space>
-      </Flex>
-
-      {/* Nhóm quà tặng */}
-      <Flex style={{ width: "100%" }} gap={"middle"}>
-        <Space direction="vertical" style={{ flex: 1 }}>
-          <Title level={5}>Giá trị quà tặng</Title>
+        );
+      
+      case 'Giá trị quà tặng':
+        return (
           <Radio.Group
             style={{
               display: "flex",
@@ -157,52 +132,95 @@ const GiftFilter: React.FC = () => {
               gap: 8,
               fontWeight: 500,
             }}
-            onChange={(e) =>
-              handleChange("priceRange", JSON.parse(e.target.value))
-            }
-            value={JSON.stringify(filters.priceRange)}
+            value={value as string}
+            onChange={(e) => handleFilterChange(type, e.target.value)}
           >
-            {priceOptions.map((option, index) => (
-              <Radio key={index} value={JSON.stringify(option.range)}>
-                {option.label}
+            {options.map((option: string, index: number) => (
+              <Radio key={index} value={option}>
+                {option}
               </Radio>
             ))}
           </Radio.Group>
-        </Space>
+        );
 
-        <Space direction="vertical" style={{ flex: 1 }}>
-          <Title level={5}>Trend</Title>
-          <Flex vertical gap={10}>
-            <Checkbox
-              onChange={(e) => handleChange("trend", e.target.checked)}
-              style={{ fontWeight: 500 }}
-            >
-              Theo xu hướng
-            </Checkbox>
-          </Flex>
-        </Space>
+      case 'Giới tính':
+        return (
+          <Radio.Group
+            value={value as string}
+            onChange={(e) => handleFilterChange(type, e.target.value)}
+            options={options.map(option => ({ label: option, value: option }))}
+          />
+        );
 
-        <Space direction="vertical" style={{ flex: 1 }}>
-          <Title level={5}>Loại quà</Title>
+      case 'Tuổi':
+        return (
           <Select
             style={{ width: "100%" }}
-            placeholder="Chọn loại quà"
-            onChange={(value) => handleChange("giftType", value)}
-            // options={giftOptions}
+            placeholder={`Chọn ${type.toLowerCase()}`}
+            value={value as string}
+            onChange={(val) => handleFilterChange(type, val)}
+            options={options.map(option => ({ label: `${option} tuổi`, value: option }))}
+            showSearch
           />
-        </Space>
+        );
+
+      default:
+        return (
+          <Select
+            style={{ width: "100%" }}
+            placeholder={`Chọn ${type.toLowerCase()}`}
+            value={value as string}
+            onChange={(val) => handleFilterChange(type, val)}
+            options={options.map(option => ({ label: option, value: option }))}
+            showSearch
+            allowClear
+          />
+        );
+    }
+  };
+
+  if (loading) {
+    return (
+      <Flex justify="center" align="center" style={{ height: "200px" }}>
+        <Spin size="large" />
+      </Flex>
+    );
+  }
+
+  return (
+    <Flex
+      style={{
+        width: "100%",
+        padding: "50px",
+        gap: 30,
+      }}
+      vertical
+    >
+      {/* Dynamic Filter Rendering */}
+      <Flex style={{ width: "100%" }} wrap="wrap" gap={20}>
+        {filterData.map((filter) => (
+          <Space key={filter._id} direction="vertical" style={{ minWidth: 200, flex: 1 }}>
+            <Title level={5}>{filter.type}</Title>
+            {renderFilterComponent(filter)}
+          </Space>
+        ))}
       </Flex>
 
-      {/* Hành động       */}
-      <Flex style={{ width: "100%" }} justify="right">
-        <Space>
-          <Button
-            type="primary"
-            style={{ fontFamily: "Oswald", padding: "20px 25px", fontSize: 16 }}
-          >
-            Áp dụng bộ lọc
-          </Button>
-        </Space>
+      {/* Action Buttons */}
+      <Flex style={{ width: "100%" }} justify="space-between">
+        <Button
+          onClick={handleClearFiltersClick}
+          style={{ fontFamily: "Oswald", padding: "20px 25px", fontSize: 16 }}
+        >
+          Xóa bộ lọc
+        </Button>
+        <Button
+          type="primary"
+          onClick={handleApplyFiltersClick}
+          style={{ fontFamily: "Oswald", padding: "20px 25px", fontSize: 16 }}
+        >
+          Áp dụng bộ lọc
+        </Button>
       </Flex>
     </Flex>
   );

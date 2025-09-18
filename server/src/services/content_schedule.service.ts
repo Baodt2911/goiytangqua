@@ -1,8 +1,50 @@
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import slugify from "slugify";
-import { ContentScheduleRequestDTO } from "src/dtos";
+import { ContentScheduleRequestDTO,ContentScheduleUpdateRequestDTO } from "src/dtos";
 import { _contentSchedule, _aiPrompt, _post, _product } from "src/models";
 import { callAIWithPrompt } from "src/utils";
+
+// src/utils/schedule.ts
+export function calculateNextRunAt(
+  frequency: "once" | "daily" | "weekly" | "monthly",
+  scheduleTime: string
+): Date {
+  const now = new Date();
+  let nextRunAt = new Date();
+
+  if (frequency === "daily") {
+    const [hour, minute] = scheduleTime.split(":").map(Number);
+    nextRunAt.setHours(hour, minute, 0, 0);
+    if (nextRunAt <= now) nextRunAt.setDate(nextRunAt.getDate() + 1);
+  }
+
+  if (frequency === "weekly") {
+    const [dayStr, timeStr] = scheduleTime.split("-");
+    const [hour, minute] = timeStr.split(":").map(Number);
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const targetDay = days.indexOf(dayStr);
+    nextRunAt.setHours(hour, minute, 0, 0);
+    while (nextRunAt.getDay() !== targetDay || nextRunAt <= now) {
+      nextRunAt.setDate(nextRunAt.getDate() + 1);
+    }
+  }
+
+  if (frequency === "once") {
+    nextRunAt = new Date(scheduleTime);
+  }
+
+  if (frequency === "monthly") {
+    const [dayStr, timeStr] = scheduleTime.split("-");
+    const day = Number(dayStr);
+    const [hour, minute] = timeStr.split(":").map(Number);
+    nextRunAt.setDate(day);
+    nextRunAt.setHours(hour, minute, 0, 0);
+    if (nextRunAt <= now) nextRunAt.setMonth(nextRunAt.getMonth() + 1);
+  }
+
+  return nextRunAt;
+}
+
 export const createScheduleService = async (
   data: ContentScheduleRequestDTO
 ) => {
@@ -21,7 +63,8 @@ export const createScheduleService = async (
           "Prompt đang trong trạng thái tắt, vui lòng bật lại để sử dụng",
       };
     }
-    await _contentSchedule.create(data);
+    const nextRunAt = calculateNextRunAt(data.frequency, data.scheduleTime);
+    await _contentSchedule.create({...data,nextRunAt});
     return {
       status: StatusCodes.CREATED,
       message: "Tạo schedule thành công",
@@ -34,20 +77,19 @@ export const createScheduleService = async (
 
 export const updateScheduleService = async (
   id: string,
-  data: Partial<ContentScheduleRequestDTO>
+  data: Partial<ContentScheduleUpdateRequestDTO>
 ) => {
   try {
-    let updateFields: Partial<ContentScheduleRequestDTO> = {};
+    let updateFields: Partial<ContentScheduleUpdateRequestDTO> = {};
     if (data.name) updateFields.name = data.name;
-    if (data.aiPromptId) updateFields.aiPromptId = data.aiPromptId;
     if (data.autoPublish) updateFields.autoPublish = data.autoPublish;
     if (data.frequency) updateFields.frequency = data.frequency;
-    if (data.lastRunAt) updateFields.lastRunAt = data.lastRunAt;
-    if (data.nextRunAt) updateFields.nextRunAt = data.nextRunAt;
     if (data.scheduleTime) updateFields.scheduleTime = data.scheduleTime;
     if (data.status) updateFields.status = data.status;
-    if (data.totalRuns) updateFields.totalRuns = data.totalRuns;
-
+    if(data.frequency && data.scheduleTime){
+      const nextRunAt = calculateNextRunAt(data.frequency, data.scheduleTime);
+      updateFields.nextRunAt = nextRunAt;
+    }
     const isUpdated = await _contentSchedule.findByIdAndUpdate(id, {
       $set: updateFields,
     });
@@ -138,16 +180,17 @@ export const generateContentService = async (schedule: any) => {
 
       2. Phần CONTENT viết theo dạng HTML body (giống TinyMCE):
         - Chỉ viết nội dung, không có thẻ <html>, <head>, <body>
-        - Sử dụng các thẻ như <h2>, <h3>, <p>, <strong>, <em>, <ul>, <li>
-        - Bắt buộc chứa ít nhất 2-3 link sản phẩm từ danh sách: ${JSON.stringify(
+        - Sử dụng các thẻ như <h2>, <h3>, <p>, <strong>, <em>, <ul>, <li>, ... các thẻ html
+        - Bắt buộc chứa ít nhất 5-10 link và ảnh sản phẩm từ danh sách: ${JSON.stringify(
           products
         )}
+        - Nên viết theo dạng có các chỉ mục, ví dụ: <h2>1. Tên sản phẩm</h2>
+        - Bắt buộc phải css cho đẹp, cỡ chữ, căn chỉnh ảnh và nội dung phù hợp
 
       3. Format link sản phẩm: <a href="URL_SẢN_PHẨM" target="_blank">TÊN_SẢN_PHẨM</a>
-
-      4. Giữ đúng tone: tích cực, ấm áp, truyền cảm hứng, thân thiện
-
-      5. QUAN TRỌNG: Tuân thủ chính xác format trên, bắt đầu bằng ===TITLE=== và kết thúc bằng ===END===
+      4. Format ảnh sản phẩm: <img src="URL_HÌNH_SẢN_PHẨM" alt="TÊN_SẢN_PHẨM">
+      5. Giữ đúng tone: tích cực, ấm áp, truyền cảm hứng, thân thiện
+      6. QUAN TRỌNG: Tuân thủ chính xác format trên, bắt đầu bằng ===TITLE=== và kết thúc bằng ===END===
 
       Ví dụ format mong muốn:
       ===TITLE===
@@ -158,52 +201,88 @@ export const generateContentService = async (schedule: any) => {
       <h2>Những món quà từ trái tim</h2>
       <p>Việc chọn quà tặng không chỉ đơn thuần là trao đổi vật chất...</p>
       <p>Hãy cân nhắc <a href="/product1" target="_blank">Áo len cao cấp</a> với thiết kế tinh tế...</p>
+      <img src="URL_HÌNH_SẢN_PHẨM" alt="TÊN_SẢN_PHẨM">
       ===END===
       `;
 
+    // Ensure maxTokens is sufficient for the content length requested
+    const adjustedMaxTokens = Math.max(maxTokens || 1000, 2000); // Minimum 2000 tokens
+    
+    console.log(`Using maxTokens: ${adjustedMaxTokens} (original: ${maxTokens})`);
+    
     const AI_Response = (await callAIWithPrompt(
       {
         aiProvider,
         aiModel,
         temperature,
-        maxTokens,
+        maxTokens: adjustedMaxTokens,
         systemMessage,
       },
       userPrompt
     )) as any;
 
+    console.log("=== RAW AI RESPONSE ===");
     console.log(AI_Response);
+    console.log("=== END RAW RESPONSE ===");
 
-    // Parsing code cho phiên bản 1:
+    // Improved parsing with better regex patterns
     const titleMatch = AI_Response.match(
-      /===TITLE===\s*(.*?)\s*===DESCRIPTION===/s
+      /===TITLE===\s*\n?\s*([\s\S]*?)\s*\n?\s*===DESCRIPTION===/i
     );
     const descMatch = AI_Response.match(
-      /===DESCRIPTION===\s*(.*?)\s*===CONTENT===/s
+      /===DESCRIPTION===\s*\n?\s*([\s\S]*?)\s*\n?\s*===CONTENT===/i
     );
     const contentMatch = AI_Response.match(
-      /===CONTENT===\s*(.*?)\s*===END===/s
+      /===CONTENT===\s*\n?\s*([\s\S]*?)\s*\n?\s*===END===/i
     );
 
-    const title = titleMatch ? titleMatch[1].trim() : "";
-    const description = descMatch ? descMatch[1].trim() : "";
-    const content = contentMatch ? contentMatch[1].trim() : "";
+    let title = titleMatch ? titleMatch[1].trim() : "";
+    let description = descMatch ? descMatch[1].trim() : "";
+    let content = contentMatch ? contentMatch[1].trim() : "";
+
+    console.log("=== REGEX MATCHES ===");
+    console.log("Title match:", titleMatch ? "✅" : "❌", titleMatch?.[0]);
+    console.log("Description match:", descMatch ? "✅" : "❌", descMatch?.[0]);
+    console.log("Content match:", contentMatch ? "✅" : "❌", contentMatch?.[0]);
 
     if (!title) {
       console.error("⚠️ Title not found or empty");
+      console.log("Searching for title patterns in response...");
+      const altTitleMatch = AI_Response.match(/===TITLE===([\s\S]*?)===DESCRIPTION===/i);
+      if (altTitleMatch) console.log("Alternative title found:", altTitleMatch[1]);
     }
     if (!description) {
       console.error("⚠️ Description not found or empty");
+      console.log("Searching for description patterns in response...");
+      const altDescMatch = AI_Response.match(/===DESCRIPTION===([\s\S]*?)===CONTENT===/i);
+      if (altDescMatch) console.log("Alternative description found:", altDescMatch[1]);
     }
     if (!content) {
       console.error("⚠️ Content not found or empty");
+      console.log("Searching for content patterns in response...");
+      
+      // Try to extract content even if ===END=== is missing (truncated response)
+      const altContentMatch = AI_Response.match(/===CONTENT===\s*\n?\s*([\s\S]*?)(?:===END===|$)/i);
+      if (altContentMatch) {
+        const extractedContent = altContentMatch[1].trim();
+        console.log("Alternative content found (length:", extractedContent.length, ")");
+        console.log("Content preview:", extractedContent.substring(0, 200) + "...");
+        
+        // Use the extracted content if it's substantial enough
+        if (extractedContent.length > 50) {
+          console.log("Using alternative content extraction");
+          content = extractedContent;
+        }
+      }
     }
 
+    console.log("=== EXTRACTED VALUES ===");
     console.log({ title, description, content });
-    if (title && content) {
+    if (title && content && description) {
       await _post.create({
         title,
         content,
+        description,
         slug: slugify(title, {
           lower: true,
           strict: true,
@@ -262,7 +341,7 @@ export const updateNextRunService = async (schedule: any) => {
         break;
 
       case "weekly":
-        nextRun = addDays(schedule.nextRunAt, 1);
+        nextRun = addDays(schedule.nextRunAt, 7);
         break;
 
       case "monthly":

@@ -16,9 +16,9 @@ export const getFilterService = async () => {
 export const addFilterService = async (data: FilterRequestDTO) => {
   try {
     await _filter.findOneAndUpdate(
-      { type: data.type.toLocaleLowerCase() },
+      { type: data.type },
       {
-        $setOnInsert: { type: data.type.toLocaleLowerCase() },
+        $setOnInsert: { type: data.type },
         $set: { options: data.options },
       },
       {

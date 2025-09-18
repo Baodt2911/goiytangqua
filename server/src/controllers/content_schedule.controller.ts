@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
-import { ContentScheduleRequestDTO } from "src/dtos";
+import { ContentScheduleRequestDTO,ContentScheduleUpdateRequestDTO } from "src/dtos";
 import {
   createScheduleService,
   deleteScheduleService,
@@ -24,7 +24,7 @@ export const createScheduleController = async (
   }
 };
 export const updateScheduleController = async (
-  req: Request<{ id: string }, {}, Partial<ContentScheduleRequestDTO>>,
+  req: Request<{ id: string }, {}, Partial<ContentScheduleUpdateRequestDTO>>,
   res: Response
 ) => {
   try {

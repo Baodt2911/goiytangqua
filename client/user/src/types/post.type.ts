@@ -1,3 +1,5 @@
+import { ProductType } from "./product.type";
+
 export type PostType = {
   _id: string | undefined;
   title: string;
@@ -6,7 +8,7 @@ export type PostType = {
   description?: string;
   slug: string;
   filters: Record<string, string>;
-  products: string[];
+  products: ProductType[];
   tags: string[];
   status: "draft" | "published" | "scheduled" | undefined;
   publishedAt: Date | undefined;
@@ -23,4 +25,5 @@ export type PostParamsType = {
   status: "draft" | "published" | "scheduled" | undefined;
   generatedBy: "human" | "ai" | "hybrid" | undefined;
   isFeatured: boolean;
+  tags: string | undefined;
 };

@@ -2,11 +2,13 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { PostType } from "../../types/post.type";
 type PostState = {
   posts: PostType[];
+  bestPosts: PostType[];
   loading: boolean;
   error: string | null;
 };
 const initialState: PostState = {
   posts: [],
+  bestPosts: [],
   loading: false,
   error: null,
 };
@@ -27,23 +29,18 @@ const postSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
-
-    // CREATE
-    createPost: (state, action: PayloadAction<PostType>) => {
-      state.posts.push(action.payload);
+    // BEST POSTS
+    getBestPostsStart: (state) => {
+      state.loading = true;
+      state.error = null;
     },
-
-    // UPDATE
-    updatePost: (state, action: PayloadAction<PostType>) => {
-      const index = state.posts.findIndex((p) => p._id === action.payload._id);
-      if (index !== -1) {
-        state.posts[index] = action.payload;
-      }
+    getBestPostsSuccess: (state, action: PayloadAction<PostType[]>) => {
+      state.bestPosts = action.payload;
+      state.loading = false;
     },
-
-    // DELETE
-    deletePost: (state, action: PayloadAction<string>) => {
-      state.posts = state.posts.filter((p) => p._id !== action.payload);
+    getBestPostsFailure: (state, action: PayloadAction<string>) => {
+      state.loading = false;
+      state.error = action.payload;
     },
   },
 });
@@ -51,8 +48,8 @@ export const {
   getPostsStart,
   getPostsSuccess,
   getPostsFailure,
-  createPost,
-  updatePost,
-  deletePost,
+  getBestPostsStart,
+  getBestPostsSuccess,
+  getBestPostsFailure,
 } = postSlice.actions;
 export default postSlice.reducer;

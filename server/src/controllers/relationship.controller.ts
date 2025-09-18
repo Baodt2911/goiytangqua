@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
-import { RelationshipRequestDTO, UpdateRelationshipRequestDTO } from "src/dtos";
+import { RelationshipRequestDTO } from "src/dtos";
 import {
   addNewRelationshipService,
   deleteRelationshipService,
@@ -13,10 +13,12 @@ export const addNewRealationshipController = async (
 ) => {
   try {
     const user = req.user;
-    const { name, relationshipType } = req.body;
+    const { name, relationshipType, anniversaries, preferences } = req.body;
     const { message, status } = await addNewRelationshipService(user, {
       name,
       relationshipType,
+      anniversaries,
+      preferences,
     });
     res.status(status).json({ status, message });
   } catch (error: any) {
@@ -62,17 +64,18 @@ export const deleteRelationshipController = async (
   }
 };
 export const updateRelationshipController = async (
-  req: Request<{ id: string }, {}, UpdateRelationshipRequestDTO>,
+  req: Request<{ id: string }, {}, Partial<RelationshipRequestDTO>>,
   res: Response
 ) => {
   try {
     const user = req.user;
     const { id } = req.params;
-    const { name, relationshipType, anniversaries } = req.body;
+    const { name, relationshipType, anniversaries, preferences } = req.body;
     const data = {
       name,
       relationshipType,
       anniversaries,
+      preferences,
     };
     const { status, message } = await updateRelationshipService(user, id, data);
     res.status(status).json({ status, message });

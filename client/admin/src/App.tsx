@@ -13,6 +13,9 @@ import { isTokenExpired } from "./utils/token";
 import { refreshToken } from "./features/auth/auth.service";
 import { loginSuccess, logout } from "./features/auth/auth.slice";
 import { useAppDispatch } from "./app/hook";
+import { Navigate } from "react-router-dom";
+import PrivateRoute from "./components/PrivateRoute";
+import GuestRoute from "./components/GuestRoute";
 function App() {
   const dispatch = useAppDispatch();
   useEffect(() => {
@@ -34,17 +37,23 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<MainLayout />}>
-          <Route path="dashboard" element={<DashBoardPage />} />
-          <Route path="article">
-            <Route path="writing" element={<WritingPage />} />
-            <Route path="list-article" element={<PostsPage />} />
+          <Route element={<PrivateRoute />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<DashBoardPage />} />
+            <Route path="article">
+              <Route path="writing" element={<WritingPage />} />
+              <Route path="list-article" element={<PostsPage />} />
+            </Route>
+            <Route path="filter" element={<FilterPage />} />
+            <Route path="product" element={<ProductPage />} />
+            <Route path="ai-prompt" element={<AIPromptPage />} />
           </Route>
-          <Route path="filter" element={<FilterPage />} />
-          <Route path="product" element={<ProductPage />} />
-          <Route path="ai-prompt" element={<AIPromptPage />} />
         </Route>
-        <Route path="/auth" element={<AuthLayout />}>
-          <Route path="login" element={<Login />} />
+
+        <Route element={<GuestRoute />}>
+          <Route path="/auth" element={<AuthLayout />}>
+            <Route path="login" element={<Login />} />
+          </Route>
         </Route>
       </Routes>
     </Router>

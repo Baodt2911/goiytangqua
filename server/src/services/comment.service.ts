@@ -21,7 +21,7 @@ export const getCommentsService = async (postId: string) => {
   try {
     const existingComments = await _comment
       .find({ postId })
-      .populate("userId", "name")
+      .populate("userId", "name -_id")
       .lean();
     return {
       status: StatusCodes.OK,

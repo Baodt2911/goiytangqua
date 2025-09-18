@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Modal,
@@ -13,10 +13,12 @@ import {
   Avatar,
   Typography,
   Divider,
-  Empty,
   Tooltip,
   List,
   App,
+  Spin,
+  Alert,
+  Form,
 } from "antd";
 import {
   PlusOutlined,
@@ -30,6 +32,21 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { RelationshipType } from "../../types/relationship.type";
+import { useAppDispatch, useAppSelector } from "../../app/hook";
+import {
+  getRelationshipAsync,
+  createRelationshipAsync,
+  updateRelationshipAsync,
+  deleteRelationshipAsync,
+} from "../../features/relationship/relationship.service";
+import {
+  getRelationshipsStart,
+  getRelationshipsSuccess,
+  getRelationshipsFailure,
+  createRelationship,
+  updateRelationship,
+  deleteRelationship,
+} from "../../features/relationship/relationship.slice";
 
 // 🎨 pool màu & icon
 const colors = [
@@ -76,88 +93,121 @@ function getInitials(name: string) {
 
 const RelationshipManagement: React.FC = () => {
   const { message } = App.useApp();
-  const [relationships, setRelationships] = useState<RelationshipType[]>([
-    {
-      _id: "1",
-      name: "Hoàng Văn Đình",
-      relationshipType: "Bạn bè",
-      preferences: ["đọc sách", "chơi game"],
-      anniversaries: [
-        { name: "Sinh nhật", date: { day: 22, month: 7 } },
-        { name: "Kỷ niệm gặp nhau", date: { day: 12, month: 7 } },
-      ],
-    },
-    {
-      _id: "2",
-      name: "Đỗ Trọng Chi",
-      relationshipType: "Anh trai",
-      preferences: ["trà", "đi bộ"],
-      anniversaries: [{ name: "Sinh nhật", date: { day: 29, month: 11 } }],
-    },
-    {
-      _id: "3",
-      name: "Đỗ Người Yêu",
-      relationshipType: "Người yêu",
-      preferences: ["trà", "đi bộ"],
-      anniversaries: [{ name: "Sinh nhật", date: { day: 29, month: 11 } }],
-    },
-  ]);
+  const dispatch = useAppDispatch();
+  const { relationships, loading, error } = useAppSelector(
+    (state) => state.relationship
+  );
+  const [form] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<RelationshipType | null>(null);
-  const [formData, setFormData] = useState<RelationshipType>({
-    _id: "",
-    name: "",
-    relationshipType: "",
-    preferences: [],
-    anniversaries: [],
-  });
+
+  // Load relationships on component mount
+  useEffect(() => {
+    const loadRelationships = async () => {
+      try {
+        dispatch(getRelationshipsStart());
+        const { relationships } = await getRelationshipAsync();
+
+        dispatch(getRelationshipsSuccess(relationships));
+      } catch (err: any) {
+        dispatch(getRelationshipsFailure(err.message));
+        message.error(err.message);
+      }
+    };
+
+    loadRelationships();
+  }, [dispatch, message]);
 
   const handleOpen = (rel?: RelationshipType) => {
     if (rel) {
       setEditing(rel);
-      setFormData(rel);
+      form.setFieldsValue({
+        name: rel.name,
+        relationshipType: rel.relationshipType,
+        preferences: rel.preferences || [],
+        anniversaries:
+          rel.anniversaries?.map((ann) => ({
+            name: ann.name,
+            date: dayjs()
+              .month((ann.date as any).month - 1)
+              .date((ann.date as any).day),
+          })) || [],
+      });
     } else {
       setEditing(null);
-      setFormData({
-        _id: "",
-        name: "",
-        relationshipType: "",
-        preferences: [],
-        anniversaries: [],
-      });
+      form.resetFields();
     }
     setIsModalOpen(true);
   };
 
-  const handleSave = () => {
-    if (!formData.name || !formData.relationshipType) {
-      message.error("Tên và loại quan hệ bắt buộc");
-      return;
+  const handleSave = async () => {
+    try {
+      const values = await form.validateFields();
+      const transformedValues = {
+        ...values,
+        anniversaries:
+          values.anniversaries?.map((ann: any) => ({
+            name: ann.name,
+            date: {
+              day: ann.date.date(),
+              month: ann.date.month() + 1,
+            },
+          })) || [],
+      };
+
+      if (editing) {
+        const updatedData = { ...transformedValues, _id: editing._id };
+        const data = await updateRelationshipAsync(updatedData);
+        if (data.status >= 400) {
+          return message.warning(data.message);
+        }
+        message.success(data.message);
+        dispatch(updateRelationship(updatedData));
+      } else {
+        const data = await createRelationshipAsync(transformedValues);
+        if (data.status >= 400) {
+          return message.warning(data.message);
+        }
+        message.success(data.message);
+        dispatch(createRelationship(transformedValues));
+      }
+
+      setIsModalOpen(false);
+      form.resetFields();
+    } catch (err: any) {
+      if (err.errorFields) {
+        message.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+      } else {
+        message.error(editing ? "Cập nhật thất bại" : "Thêm thất bại");
+      }
     }
-    if (editing) {
-      setRelationships((prev) =>
-        prev.map((r) =>
-          r._id === editing._id ? { ...formData, _id: editing._id } : r
-        )
-      );
-      message.success("Cập nhật thành công");
-    } else {
-      setRelationships((prev) => [
-        ...prev,
-        { ...formData, _id: Date.now().toString() },
-      ]);
-      message.success("Thêm thành công");
-    }
-    setIsModalOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setRelationships((prev) => prev.filter((r) => r._id !== id));
-    message.success("Xóa thành công");
+  const handleDelete = async (id: string) => {
+    try {
+      const data = await deleteRelationshipAsync(id);
+      if (data.status >= 400) {
+        return message.warning(data.message);
+      }
+      message.success(data.message);
+      dispatch(deleteRelationship(id));
+    } catch (err: any) {
+      message.error(err.message);
+    }
   };
 
   return (
     <div>
+      {error && (
+        <Alert
+          message="Lỗi"
+          description={error}
+          type="error"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+      )}
+
       <div
         style={{
           display: "flex",
@@ -169,123 +219,134 @@ const RelationshipManagement: React.FC = () => {
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => handleOpen()}
+          loading={loading}
         >
           Thêm
         </Button>
       </div>
-      <List
-        style={{ width: "100%" }}
-        grid={{ gutter: 35, column: 1 }}
-        dataSource={relationships}
-        renderItem={(rel) => (
-          <List.Item
-            style={{
-              display: "flex",
-              alignItems: "stretch",
-              gap: 12,
-              padding: 14,
-              borderRadius: 12,
-              boxShadow: "0 5px 10px 0 #f5f5f5",
-              background: "transparent",
-            }}
-          >
-            <Avatar size={48} style={getAvatarStyle(rel.name)} icon={undefined}>
-              {getInitials(rel.name)}
-            </Avatar>
 
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  flexWrap: "wrap",
-                }}
+      <Spin spinning={loading}>
+        <List
+          style={{ width: "100%" }}
+          grid={{ gutter: 35, column: 1 }}
+          dataSource={relationships || []}
+          renderItem={(rel) => (
+            <List.Item
+              style={{
+                display: "flex",
+                alignItems: "stretch",
+                gap: 12,
+                padding: 14,
+                borderRadius: 12,
+                boxShadow: "0 5px 10px 0 #f5f5f5",
+                background: "transparent",
+              }}
+            >
+              <Avatar
+                size={48}
+                style={getAvatarStyle(rel.name)}
+                icon={undefined}
               >
-                <Typography.Text strong style={{ fontSize: 16 }}>
-                  {rel.name}
-                </Typography.Text>
-                <Tag
-                  color={getStyleByType(rel.relationshipType).color}
-                  icon={getStyleByType(rel.relationshipType).icon}
-                  style={{ borderRadius: 999 }}
+                {getInitials(rel.name)}
+              </Avatar>
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    flexWrap: "wrap",
+                  }}
                 >
-                  {rel.relationshipType}
-                </Tag>
+                  <Typography.Text strong style={{ fontSize: 16 }}>
+                    {rel.name}
+                  </Typography.Text>
+                  <Tag
+                    color={getStyleByType(rel.relationshipType).color}
+                    icon={getStyleByType(rel.relationshipType).icon}
+                    style={{ borderRadius: 999 }}
+                  >
+                    {rel.relationshipType}
+                  </Tag>
+                </div>
+
+                {rel.preferences && rel.preferences.length > 0 && (
+                  <div
+                    style={{
+                      marginTop: 8,
+                      display: "flex",
+                      gap: 6,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {rel.preferences.map((p) => (
+                      <Tag
+                        key={p}
+                        style={{
+                          borderRadius: 999,
+                          background: "transparent",
+                          border: "1px dashed #ffd6bf",
+                          color: "#ad4e00",
+                        }}
+                      >
+                        {p}
+                      </Tag>
+                    ))}
+                  </div>
+                )}
+
+                {rel.anniversaries && rel.anniversaries.length > 0 && (
+                  <div
+                    style={{
+                      marginTop: 8,
+                      display: "flex",
+                      gap: 6,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {rel.anniversaries.map((a, i) => (
+                      <Tag
+                        key={i}
+                        icon={<CalendarOutlined />}
+                        color="orange"
+                        style={{ borderRadius: 8 }}
+                      >
+                        {a.name}: {(a.date as any).day}/{(a.date as any).month}
+                      </Tag>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {rel.preferences && rel.preferences.length > 0 && (
-                <div
-                  style={{
-                    marginTop: 8,
-                    display: "flex",
-                    gap: 6,
-                    flexWrap: "wrap",
-                  }}
+              <Space direction="vertical" size={6} align="end">
+                <Tooltip title="Chỉnh sửa">
+                  <Button
+                    size="small"
+                    icon={<EditOutlined />}
+                    onClick={() => handleOpen(rel)}
+                  />
+                </Tooltip>
+                <Popconfirm
+                  title="Xóa mối quan hệ này?"
+                  onConfirm={() => handleDelete(rel._id!)}
                 >
-                  {rel.preferences.map((p) => (
-                    <Tag
-                      key={p}
-                      style={{
-                        borderRadius: 999,
-                        background: "transparent",
-                        border: "1px dashed #ffd6bf",
-                        color: "#ad4e00",
-                      }}
-                    >
-                      {p}
-                    </Tag>
-                  ))}
-                </div>
-              )}
-
-              {rel.anniversaries && rel.anniversaries.length > 0 && (
-                <div
-                  style={{
-                    marginTop: 8,
-                    display: "flex",
-                    gap: 6,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  {rel.anniversaries.map((a, i) => (
-                    <Tag
-                      key={i}
-                      icon={<CalendarOutlined />}
-                      color="orange"
-                      style={{ borderRadius: 8 }}
-                    >
-                      {a.name}: {a.date.day}/{a.date.month}
-                    </Tag>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <Space direction="vertical" size={6} align="end">
-              <Tooltip title="Chỉnh sửa">
-                <Button
-                  size="small"
-                  icon={<EditOutlined />}
-                  onClick={() => handleOpen(rel)}
-                />
-              </Tooltip>
-              <Popconfirm
-                title="Xóa mối quan hệ này?"
-                onConfirm={() => handleDelete(rel._id!)}
-              >
-                <Button size="small" danger icon={<DeleteOutlined />} />
-              </Popconfirm>
-            </Space>
-          </List.Item>
-        )}
-      />
+                  <Button size="small" danger icon={<DeleteOutlined />} />
+                </Popconfirm>
+              </Space>
+            </List.Item>
+          )}
+        />
+      </Spin>
 
       {/* Modal Form */}
       <Modal
         open={isModalOpen}
         title={null}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={() => {
+          setIsModalOpen(false);
+          form.resetFields();
+        }}
         onOk={handleSave}
         okText={editing ? "Lưu thay đổi" : "Thêm"}
         cancelText="Hủy"
@@ -300,106 +361,110 @@ const RelationshipManagement: React.FC = () => {
             {editing ? "Chỉnh sửa mối quan hệ" : "Thêm mối quan hệ"}
           </Typography.Title>
         </div>
-        <Row gutter={12}>
-          <Col span={12}>
-            <Typography.Text
-              strong
-              style={{ display: "block", marginBottom: 6 }}
-            >
-              Tên
-            </Typography.Text>
-            <Input
-              placeholder="Ví dụ: Nguyễn Minh Anh"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              style={{ marginBottom: 12 }}
-            />
-          </Col>
-          <Col span={12}>
-            <Typography.Text
-              strong
-              style={{ display: "block", marginBottom: 6 }}
-            >
-              Loại quan hệ
-            </Typography.Text>
-            <Input
-              placeholder="Ví dụ: Bạn bè, Anh trai, Đồng nghiệp"
-              value={formData.relationshipType}
-              onChange={(e) =>
-                setFormData({ ...formData, relationshipType: e.target.value })
-              }
-              style={{ marginBottom: 12 }}
-            />
-          </Col>
-        </Row>
-        <Typography.Text strong style={{ display: "block", marginBottom: 6 }}>
-          Sở thích
-        </Typography.Text>
-        <Select
-          mode="tags"
-          placeholder="Thêm sở thích (nhập và nhấn Enter)"
-          style={{ width: "100%", marginBottom: 12 }}
-          value={formData.preferences}
-          onChange={(v) => setFormData({ ...formData, preferences: v })}
-        />
-        <Divider style={{ margin: "12px 0" }} />
-        <Space
-          style={{
-            width: "100%",
-            justifyContent: "space-between",
-            marginBottom: 8,
+
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{
+            preferences: [],
+            anniversaries: [],
           }}
         >
-          <Typography.Text strong>Kỷ niệm</Typography.Text>
-          <Button
-            type="dashed"
-            onClick={() =>
-              setFormData({
-                ...formData,
-                anniversaries: [
-                  ...formData.anniversaries,
-                  {
-                    name: "Sự kiện",
-                    date: { day: dayjs().date(), month: dayjs().month() + 1 },
-                  },
-                ],
-              })
-            }
-          >
-            Thêm kỷ niệm
-          </Button>
-        </Space>
-        {formData.anniversaries.map((ann, idx) => (
-          <Row key={idx} gutter={12} style={{ marginBottom: 8 }}>
+          <Row gutter={12}>
             <Col span={12}>
-              <Input
-                placeholder="Tên kỷ niệm"
-                value={ann.name}
-                onChange={(e) => {
-                  const newA = [...formData.anniversaries];
-                  newA[idx].name = e.target.value;
-                  setFormData({ ...formData, anniversaries: newA });
-                }}
-              />
+              <Form.Item
+                name="name"
+                label="Tên"
+                rules={[
+                  { required: true, message: "Vui lòng nhập tên" },
+                  { min: 2, message: "Tên phải có ít nhất 2 ký tự" },
+                ]}
+              >
+                <Input placeholder="Ví dụ: Nguyễn Minh Anh" />
+              </Form.Item>
             </Col>
             <Col span={12}>
-              <DatePicker
-                picker="date"
-                format="DD/MM"
-                value={dayjs()
-                  .month(ann.date.month - 1)
-                  .date(ann.date.day)}
-                onChange={(d) => {
-                  const newA = [...formData.anniversaries];
-                  newA[idx].date = { day: d!.date(), month: d!.month() + 1 };
-                  setFormData({ ...formData, anniversaries: newA });
-                }}
-              />
+              <Form.Item
+                name="relationshipType"
+                label="Loại quan hệ"
+                rules={[
+                  { required: true, message: "Vui lòng nhập loại quan hệ" },
+                  { min: 2, message: "Loại quan hệ phải có ít nhất 2 ký tự" },
+                ]}
+              >
+                <Input placeholder="Ví dụ: Bạn bè, Anh trai, Đồng nghiệp" />
+              </Form.Item>
             </Col>
           </Row>
-        ))}
+
+          <Form.Item name="preferences" label="Sở thích">
+            <Select
+              mode="tags"
+              placeholder="Thêm sở thích (nhập và nhấn Enter)"
+              style={{ width: "100%" }}
+            />
+          </Form.Item>
+
+          <Divider style={{ margin: "12px 0" }} />
+
+          <Form.Item label="Kỷ niệm">
+            <Form.List name="anniversaries">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <Row key={key} gutter={12} style={{ marginBottom: 8 }}>
+                      <Col span={12}>
+                        <Form.Item
+                          {...restField}
+                          name={[name, "name"]}
+                          rules={[
+                            {
+                              required: true,
+                              message: "Vui lòng nhập tên kỷ niệm",
+                            },
+                          ]}
+                        >
+                          <Input placeholder="Tên kỷ niệm" />
+                        </Form.Item>
+                      </Col>
+                      <Col span={10}>
+                        <Form.Item
+                          {...restField}
+                          name={[name, "date"]}
+                          rules={[
+                            { required: true, message: "Vui lòng chọn ngày" },
+                          ]}
+                        >
+                          <DatePicker
+                            picker="date"
+                            format="DD/MM"
+                            placeholder="Chọn ngày"
+                            style={{ width: "100%" }}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={2}>
+                        <Button
+                          type="text"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => remove(name)}
+                        />
+                      </Col>
+                    </Row>
+                  ))}
+                  <Button
+                    type="dashed"
+                    onClick={() => add()}
+                    style={{ width: "100%" }}
+                  >
+                    Thêm kỷ niệm
+                  </Button>
+                </>
+              )}
+            </Form.List>
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

@@ -8,6 +8,7 @@ import {
 } from "@ant-design/icons";
 import { PostType } from "../../types/post.type";
 import dayjs from "dayjs";
+import { getCloudinaryUrl } from "../../utils/image";
 
 const { Text, Paragraph, Link } = Typography;
 
@@ -23,6 +24,10 @@ const PostCard: React.FC<PostCardProps> = ({ post, isDetail = false }) => {
     navigate(`/article/${post.slug}`);
   };
 
+  const handleTagClick = (tag: string) => {
+    navigate(`/article/tag/${encodeURIComponent(tag)}`);
+  };
+
   return (
     <Flex
       vertical
@@ -33,14 +38,14 @@ const PostCard: React.FC<PostCardProps> = ({ post, isDetail = false }) => {
         onClick={handleReadMore}
         style={{
           width: "100%",
-          height: 400,
+          height: 600,
           boxShadow: "0 5px 10px 0 #f5f5f5",
           cursor: "pointer",
         }}
       >
         <img
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          src={post.thumbnail}
+          style={{ width: "100%", height: "100%",objectFit:"contain" }}
+          src={getCloudinaryUrl(post.thumbnail,{w:1200,h:600,c:"fill",q:100,f:"auto"})}
           alt={post.thumbnail}
         />
       </div>
@@ -105,19 +110,40 @@ const PostCard: React.FC<PostCardProps> = ({ post, isDetail = false }) => {
               <div style={{ marginBottom: 20 }}>
                 <Space wrap>
                   {post.tags.map((tag: string, index: number) => (
-                    <Link key={index}>
-                      <Tag color="blue">{tag}</Tag>
-                    </Link>
+                    <Tag 
+                      key={index} 
+                      color="blue" 
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleTagClick(tag)}
+                    >
+                      {tag}
+                    </Tag>
                   ))}
                 </Space>
               </div>
             )}
           </Flex>
         ) : (
-          <div
-            style={{ marginTop: 35 }}
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          <div style={{ marginTop: 35 }}>
+            <div dangerouslySetInnerHTML={{ __html: post.content }} />
+            {/* Tags for detail view */}
+            {post.tags && post.tags.length > 0 && (
+              <div style={{ marginTop: 30, marginBottom: 20 }}>
+                <Space wrap>
+                  {post.tags.map((tag: string, index: number) => (
+                    <Tag 
+                      key={index} 
+                      color="blue" 
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleTagClick(tag)}
+                    >
+                      {tag}
+                    </Tag>
+                  ))}
+                </Space>
+              </div>
+            )}
+          </div>
         )}
       </Flex>
     </Flex>

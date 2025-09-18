@@ -9,6 +9,9 @@ import productSlice from "../features/product/product.slice";
 import relationshipSlice from "../features/relationship/relationship.slice";
 import conversationSlice from "../features/chat/conversation.slice";
 import messageSlice from "../features/chat/message.slice";
+import navigationSlice from "../features/navigation/navigation.slice";
+import commentSlice from "../features/comment/comment.slice";
+import filterSlice from "../features/filter/filter.slice";
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +25,9 @@ export const store = configureStore({
     relationship: relationshipSlice,
     conversation: conversationSlice,
     message: messageSlice,
+    navigation: navigationSlice,
+    comment: commentSlice,
+    filter: filterSlice,
   },
 });
 export type RootState = ReturnType<typeof store.getState>;

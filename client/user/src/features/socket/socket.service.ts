@@ -2,6 +2,13 @@ import { io, Socket } from "socket.io-client";
 import { store } from "../../app/store";
 import { setConnected, setDisconnected } from "./socket.slice";
 import {
+  appendAssistantStream,
+  finishAssistantStream,
+  setMessageError,
+  startAssistantStream,
+  addUserMessageOptimistic,
+} from "../chat/message.slice";
+import {
   setNotification,
   Notification,
 } from "../notification/notification.slice";
@@ -28,6 +35,28 @@ export const connectSocket = () => {
       console.log("❌ Disconnected from server");
       store.dispatch(setDisconnected());
     });
+
+    // Chat streaming events
+    socket.on(
+      "botReply",
+      ({
+        chunk,
+        conversationId,
+      }: {
+        chunk: string;
+        conversationId?: string;
+      }) => {
+        // start stream if not started
+        store.dispatch(startAssistantStream({ conversationId }));
+        store.dispatch(appendAssistantStream(chunk));
+      }
+    );
+    socket.on("botReplyDone", () => {
+      store.dispatch(finishAssistantStream());
+    });
+    socket.on("botReplyError", (message: string) => {
+      store.dispatch(setMessageError(message));
+    });
   }
 };
 
@@ -38,3 +67,17 @@ export const disconnectSocket = () => {
   }
 };
 export const getSocket = () => socket;
+
+export const sendChatMessage = ({
+  msg,
+  conversationId,
+}: {
+  msg: string;
+  conversationId?: string;
+}) => {
+  const s = getSocket();
+  if (!s) return;
+  // optimistic user message
+  store.dispatch(addUserMessageOptimistic({ content: msg }));
+  s.emit("chatMessage", { msg, conversationId });
+};

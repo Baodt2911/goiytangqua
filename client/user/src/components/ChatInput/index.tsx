@@ -12,10 +12,18 @@ const ChatInput: React.FC<{ onSend: (text: string) => void }> = ({
   const [value, setValue] = useState("");
   const inputRef = useRef<any>(null);
   const suggestions = [
-    { text: "Giải thích như cho trẻ 5 tuổi", color: "magenta" },
-    { text: "Tóm tắt đoạn văn này", color: "geekblue" },
-    { text: "Tạo danh sách ý tưởng quà tặng", color: "gold" },
-    { text: "Sửa ngữ pháp và diễn đạt", color: "green" },
+    { text: "Gợi ý quà tặng cho người yêu", color: "magenta" },
+    { text: "Quà tặng sinh nhật cho bạn thân", color: "geekblue" },
+    { text: "Quà tặng cho người lớn tuổi", color: "gold" },
+    { text: "Gợi ý quà tặng cho trẻ em", color: "green" },
+    { text: "Quà tặng cho đồng nghiệp", color: "cyan" },
+    { text: "Gợi ý quà tặng handmade", color: "orange" },
+    { text: "Quà tặng cho người thích thể thao", color: "red" },
+    { text: "Gợi ý quà tặng cho người thích đọc sách", color: "purple" },
+    { text: "Quà tặng cho người thích nấu ăn", color: "volcano" },
+    { text: "Gợi ý quà tặng cho người thích du lịch", color: "lime" },
+    { text: "Quà tặng cho người thích âm nhạc", color: "blue" },
+    { text: "Gợi ý quà tặng cho người thích công nghệ", color: "geekblue" },
   ];
   const handleSend = () => {
     if (!value.trim()) return;

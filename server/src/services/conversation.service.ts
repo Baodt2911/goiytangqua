@@ -9,6 +9,7 @@ export const getAllConversationsService = async (user: any) => {
         userId: user.userId,
       })
       .select("-messages")
+      .sort({ createdAt: -1 })
       .lean();
     return {
       status: StatusCodes.OK,

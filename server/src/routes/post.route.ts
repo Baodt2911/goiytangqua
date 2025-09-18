@@ -4,6 +4,7 @@ import {
   createPostController,
   deletePostController,
   getAllPostsController,
+  getBestPostController,
   getCommentsController,
   getPostController,
   // increaseViewController,
@@ -22,6 +23,7 @@ const router: Router = Router();
 router.get("/slug/:slug", getPostController);
 // router.post("/slug/:slug/view", authOptional, increaseViewController);
 router.get("/all", authOptional, getAllPostsController);
+router.get("/best", getBestPostController);
 router.get("/:id/comments", validateObjectIdRequest, getCommentsController);
 router.post(
   "/:id/comment",

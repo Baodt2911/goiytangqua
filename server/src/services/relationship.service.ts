@@ -1,18 +1,19 @@
 import mongoose from "mongoose";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
-import { RelationshipRequestDTO, UpdateRelationshipRequestDTO } from "src/dtos";
+import { RelationshipRequestDTO } from "src/dtos";
 import { _relationship } from "src/models";
 export const addNewRelationshipService = async (
   user: any,
   data: RelationshipRequestDTO
 ) => {
   try {
-    const { name, relationshipType, anniversaries } = data;
+    const { name, relationshipType, anniversaries, preferences } = data;
     await _relationship.create({
       userId: user.userId,
       name,
       relationshipType,
       anniversaries,
+      preferences,
     });
     return {
       status: StatusCodes.CREATED,
@@ -61,13 +62,14 @@ export const deleteRelationshipService = async (user: any, id: string) => {
 export const updateRelationshipService = async (
   user: any,
   id: string,
-  data: UpdateRelationshipRequestDTO
+  data: Partial<RelationshipRequestDTO>
 ) => {
   try {
-    const { name, relationshipType, anniversaries } = data;
-    const updateFields: UpdateRelationshipRequestDTO = {};
+    const { name, relationshipType, anniversaries, preferences } = data;
+    const updateFields: Partial<RelationshipRequestDTO> = {};
     if (name) updateFields.name = name;
     if (relationshipType) updateFields.relationshipType = relationshipType;
+    if (preferences) updateFields.preferences = preferences;
     if (anniversaries) updateFields.anniversaries = anniversaries;
     const isUpdated = await _relationship.findOneAndUpdate(
       {

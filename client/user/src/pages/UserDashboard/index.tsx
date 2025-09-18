@@ -1,22 +1,9 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Tabs } from "antd";
 import RelationshipManagement from "../../components/RelationshipManagement";
 import UserProfile from "../../components/UserProfile";
-import { RootState } from "../../app/store";
-import { useAppSelector } from "../../app/hook";
-import { useNavigate } from "react-router-dom";
 
 const UserDashboard: React.FC = () => {
-  const navigate = useNavigate();
-
-  const isAuthenticated = useAppSelector(
-    (state: RootState) => state.auth.isAuthenticated
-  );
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/auth/login");
-    }
-  }, [isAuthenticated]);
   return (
     <div
       style={{

@@ -38,11 +38,13 @@ const UserProfile: React.FC = () => {
         return message.warning(data.message);
       }
       dispatch(setUser({ email, ...formattedData }));
+      setEditingProfile(false);
       message.success(data.message);
       setIsLoading(false);
     } catch (error: any) {
       console.log(error);
       message.error(error.message);
+      setIsLoading(false);
     }
   };
   const handleChangePassword = async (values: any) => {
@@ -57,10 +59,12 @@ const UserProfile: React.FC = () => {
         return message.warning(data.message);
       }
       message.success(data.message);
+      setEditingPassword(false);
       setIsLoading(false);
     } catch (error: any) {
       console.log(error);
       message.error(error.message);
+      setIsLoading(false);
     }
   };
 
@@ -188,7 +192,21 @@ const UserProfile: React.FC = () => {
           <Form.Item
             label="Mật khẩu mới"
             name="newPassword"
-            rules={[{ required: true, message: "Vui lòng nhập mật khẩu mới!" }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập mật khẩu mới!" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue("currentPassword") === value) {
+                    return Promise.reject(
+                      new Error(
+                        "Mật khẩu mới không được trùng với mật khẩu hiện tại!"
+                      )
+                    );
+                  }
+                  return Promise.resolve();
+                },
+              }),
+            ]}
             hasFeedback
           >
             <Input.Password

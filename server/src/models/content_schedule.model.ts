@@ -14,7 +14,7 @@ const contentScheduleSchema = new Schema<ContentSchedule>(
       enum: ["once", "daily", "weekly", "monthly"],
       required: true,
     },
-    scheduleTime: { type: String, required: true },
+    scheduleTime: { type: String, required: true, default: "00:00" },
     nextRunAt: { type: Date, required: true },
     autoPublish: { type: Boolean, default: false },
     status: {

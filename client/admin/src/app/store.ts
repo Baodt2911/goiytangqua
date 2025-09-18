@@ -7,7 +7,7 @@ import productSlice from "../features/product/product.slice";
 import selectedAIPromptSlice from "../features/ai_prompt/selectedAIPrompt.slice";
 import aiPromptSlice from "../features/ai_prompt/ai_prompt.slice";
 import scheduleSlice from "../features/schedule/schedule.slice";
-import statsAISlice from "../features/stats/stats_ai.slice";
+import statsSlice from "../features/stats/stats.slice";
 
 export const store = configureStore({
   reducer: {
@@ -19,7 +19,7 @@ export const store = configureStore({
     selectedAIPrompt: selectedAIPromptSlice,
     aiPrompt: aiPromptSlice,
     schedule: scheduleSlice,
-    statsAI: statsAISlice,
+    stats: statsSlice,
   },
 });
 export type RootState = ReturnType<typeof store.getState>;

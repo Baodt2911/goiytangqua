@@ -3,7 +3,7 @@ import { Comment } from "src/types";
 const commentSchema = new Schema<Comment>(
   {
     userId: { type: Schema.Types.ObjectId, required: true, ref: "users" },
-    postId: { type: Schema.Types.ObjectId, required: true },
+    postId: { type: Schema.Types.ObjectId, required: true, ref: "posts" },
     content: { type: String, required: true },
   },
   {

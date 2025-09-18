@@ -59,16 +59,8 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   const [selectedKey, setSelectedKey] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(true);
-  const isAuthenticated = useAppSelector(
-    (state: RootState) => state.auth.isAuthenticated
-  );
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/auth/login");
-    }
-  }, [isAuthenticated]);
 
   useEffect(() => {
     const path = location.pathname.split("/")[1];

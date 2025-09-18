@@ -9,45 +9,19 @@ import {
 import { getAllPostAsync } from "../../features/post/post.service";
 import { RootState } from "../../app/store";
 import PostCard from "../../components/PostCard";
-
-const SkeletonPostCard: React.FC = () => {
-  return (
-    <Row gutter={[35, 35]}>
-      {Array.from({ length: 4 }, (_, index) => (
-        <Col key={index} span={24}>
-          <Flex vertical gap={16} style={{ background: "#fff" }}>
-            <Skeleton.Image style={{ width: "100%", height: 400 }} />
-            <div
-              style={{
-                width: "70%",
-                margin: "0 auto",
-                background: "#fff",
-                transform: "translateY(-150px)",
-                padding: "20px 50px",
-                minHeight: 200,
-              }}
-            >
-              <Skeleton active />
-            </div>
-          </Flex>
-        </Col>
-      ))}
-    </Row>
-  );
-};
+import SkeletonPostCard from "../../components/SkeletonPostCard";
 
 const Home: React.FC = () => {
   const { posts, loading } = useAppSelector((state: RootState) => state.post);
   const dispatch = useAppDispatch();
-
   useEffect(() => {
     const fetchFeaturedPosts = async () => {
       try {
         dispatch(getPostsStart());
         const { posts } = await getAllPostAsync({
           pageSize: 10,
-          status: "published",
         });
+
         dispatch(getPostsSuccess(posts));
       } catch (error: any) {
         console.log(error);
@@ -67,7 +41,7 @@ const Home: React.FC = () => {
       }}
     >
       {loading ? (
-        <SkeletonPostCard />
+        <SkeletonPostCard count={10} />
       ) : (
         <List
           style={{ width: "100%" }}

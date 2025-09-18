@@ -119,7 +119,7 @@ const Writing: React.FC = () => {
       let thumbnail = selectedPost.thumbnail;
       if (uploadFile) {
         thumbnail = await handleUploadImage();
-        if (selectedPost.thumbnail) {
+        if (selectedPost.thumbnail && !selectedPost.thumbnail.includes('/images_product/default')) {
           await deleteImage(getPublicId(selectedPost.thumbnail));
         }
       }
