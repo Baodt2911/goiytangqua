@@ -32,7 +32,12 @@ dotenv.config();
 
 const app: Application = express();
 const server = http.createServer(app);
-const WHITELIST_DOMAINS = ["http://localhost:5174", "http://localhost:5173"];
+const WHITELIST_DOMAINS = [
+  "http://localhost:5174",
+  "http://localhost:5173",
+  "https://goiytangqua-admin.vercel.app",
+  process.env.URL_CLIENT || "",
+];
 export const io = new Server(server, {
   cors: {
     origin: WHITELIST_DOMAINS,
@@ -74,7 +79,7 @@ app.use(
   })
 );
 
-// scheduleAnniversaries.start();
+scheduleAnniversaries.start();
 // scheduleGenerateContent.start();
 
 app.get("/", (req: Request, res: Response) => {

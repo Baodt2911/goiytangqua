@@ -1,10 +1,7 @@
-// import Redis from "ioredis";
-// const redis = new Redis({
-//   host: process.env.REDIS_HOST || "localhost",
-//   port: 6379,
-// });
+import Redis from "ioredis";
+const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
-// redis.on("connect", () => console.log("Redis connected"));
-// redis.on("error", (err) => console.error("Redis error", err));
+redis.on("connect", () => console.log("Redis connected"));
+redis.on("error", (err) => console.error("Redis error", err));
 
-// export default redis;
+export default redis;
