@@ -26,7 +26,7 @@ import { toggleTheme } from "../../features/theme/theme.slice";
 import { RootState } from "../../app/store";
 import { logoutAsync } from "../../features/auth/auth.service";
 import { useNavigation } from "../../hooks/useNavigation";
-const { Title, Text, Paragraph, Link } = Typography;
+const { Title, Text, Paragraph } = Typography;
 const { Header } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
 type NotificationItem = {
@@ -192,9 +192,9 @@ const AppHeader: React.FC = () => {
                   }}
                   itemLayout="horizontal"
                   dataSource={list}
+                  locale={{ emptyText: "Không có thông báo mới" }}
                   renderItem={(item: NotificationItem) => (
-                    <Link
-                      href="https://ant.design"
+                    <List.Item
                       style={{
                         display: "flex",
                         flexDirection: "column",
@@ -226,7 +226,7 @@ const AppHeader: React.FC = () => {
                           year: "numeric",
                         })}
                       </Text>
-                    </Link>
+                    </List.Item>
                   )}
                 />
               }
