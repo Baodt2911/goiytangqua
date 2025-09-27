@@ -2,7 +2,7 @@ import cron from "node-cron";
 import { sendNotificationService } from "src/services";
 import { _relationship } from "src/models";
 
-const scheduleAnniversaries = cron.schedule("* * * * *", async () => {
+const scheduleAnniversaries = cron.schedule("0 0 * * *", async () => {
   console.log("Đang kiểm tra các ngày kỉ niệm...");
   try {
     await sendNotificationService();

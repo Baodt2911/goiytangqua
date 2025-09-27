@@ -60,14 +60,6 @@ export async function callAIWithPrompt(prompt: AIPrompt, finalPrompt: string) {
   const maxTokens = prompt.maxTokens ?? 1024;
   const history = prompt.history || [];
   const stream = prompt.stream || false;
-  console.log({
-    text:
-      systemMsg +
-      "\n\n" +
-      history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n") +
-      "\nUSER: " +
-      finalPrompt,
-  });
 
   switch (prompt.aiProvider) {
     case "openai": {

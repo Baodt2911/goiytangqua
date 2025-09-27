@@ -1,6 +1,6 @@
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import slugify from "slugify";
-// import redis from "src/configs/redis.cofig";
+import redis from "src/configs/redis.cofig";
 import {
   getAllPostRequestQueryDTO,
   PostRequestDTO,
@@ -69,7 +69,11 @@ export const getPostService = async (slug: string) => {
 };
 export const getBestPostService = async () => {
   try {
-    const existingPosts = await _post.find({status: "published"}).populate("products").sort({views: -1}).limit(10);
+    const existingPosts = await _post
+      .find({ status: "published" })
+      .populate("products")
+      .sort({ views: -1 })
+      .limit(10);
     return {
       status: StatusCodes.OK,
       element: existingPosts,
@@ -84,7 +88,15 @@ export const getAllPostsService = async (
   data: Partial<getAllPostRequestQueryDTO>
 ) => {
   try {
-    const { page = 1, pageSize = 10, search, isFeatured, generatedBy, tags, filters } = data;
+    const {
+      page = 1,
+      pageSize = 10,
+      search,
+      isFeatured,
+      generatedBy,
+      tags,
+      filters,
+    } = data;
     let query: any = {};
 
     if (!viewer || viewer.role !== "admin") {
@@ -102,7 +114,7 @@ export const getAllPostsService = async (
     if (generatedBy) {
       query.generatedBy = generatedBy;
     }
-    
+
     if (filters) {
       query.$and = Object.entries(filters).map(([key, value]) => ({
         [`filters.${key}`]: value,
@@ -203,34 +215,34 @@ export const updatePostService = async (
     throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
   }
 };
-// export const increaseViewService = async (
-//   slug: string,
-//   user: any,
-//   ip: string | undefined
-// ) => {
-//   try {
-//     const existingPosts = await _post.findOne({ slug });
-//     if (!existingPosts) {
-//       return {
-//         status: StatusCodes.NOT_FOUND,
-//         message: "Bài viết không tồn tại hoặc đã bị xóa",
-//       };
-//     }
-//     const key = `view:${slug}:${user?.userId || ip}`;
+export const increaseViewService = async (
+  slug: string,
+  user: any,
+  ip: string | undefined
+) => {
+  try {
+    const existingPosts = await _post.findOne({ slug });
+    if (!existingPosts) {
+      return {
+        status: StatusCodes.NOT_FOUND,
+        message: "Bài viết không tồn tại hoặc đã bị xóa",
+      };
+    }
+    const key = `view:${slug}:${user?.userId || ip}`;
 
-//     const viewed = await redis.get(key);
-//     if (!viewed) {
-//       await _post.findOneAndUpdate({ slug }, { $inc: { views: 1 } });
-//       await redis.set(key, "1", "EX", 60 * 10); // 10 phút
-//     }
-//     return {
-//       status: StatusCodes.OK,
-//     };
-//   } catch (error: any) {
-//     console.error(error);
-//     throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
-//   }
-// };
+    const viewed = await redis.get(key);
+    if (!viewed) {
+      await _post.findOneAndUpdate({ slug }, { $inc: { views: 1 } });
+      await redis.set(key, "1", "EX", 60 * 10); // 10 phút
+    }
+    return {
+      status: StatusCodes.OK,
+    };
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
 export const deletePostService = async (id: string) => {
   try {
     const isDeleted = await _post.findByIdAndDelete(id);

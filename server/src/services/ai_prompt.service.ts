@@ -1,6 +1,6 @@
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { AIPromptRequestDTO } from "src/dtos";
-import { _aiPrompt } from "src/models";
+import { _aiPrompt, _contentSchedule } from "src/models";
 export const createPromptService = async (data: AIPromptRequestDTO) => {
   try {
     await _aiPrompt.create(data);
@@ -28,6 +28,10 @@ export const changeActivePromptService = async (
         message: "Prompt không tồn tại hoặc đã bị xóa",
       };
     }
+    await _contentSchedule.updateOne(
+      { aiPromptId: id },
+      { $set: { status: isActive ? "active" : "inactive" } }
+    );
     return {
       status: StatusCodes.OK,
       message: isActive ? "Đã bật prompt" : "Đã tắt prompt",

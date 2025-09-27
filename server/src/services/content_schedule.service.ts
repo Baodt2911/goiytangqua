@@ -1,6 +1,10 @@
+import { log } from "console";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import slugify from "slugify";
-import { ContentScheduleRequestDTO,ContentScheduleUpdateRequestDTO } from "src/dtos";
+import {
+  ContentScheduleRequestDTO,
+  ContentScheduleUpdateRequestDTO,
+} from "src/dtos";
 import { _contentSchedule, _aiPrompt, _post, _product } from "src/models";
 import { callAIWithPrompt } from "src/utils";
 
@@ -64,7 +68,7 @@ export const createScheduleService = async (
       };
     }
     const nextRunAt = calculateNextRunAt(data.frequency, data.scheduleTime);
-    await _contentSchedule.create({...data,nextRunAt});
+    await _contentSchedule.create({ ...data, nextRunAt });
     return {
       status: StatusCodes.CREATED,
       message: "Tạo schedule thành công",
@@ -86,7 +90,7 @@ export const updateScheduleService = async (
     if (data.frequency) updateFields.frequency = data.frequency;
     if (data.scheduleTime) updateFields.scheduleTime = data.scheduleTime;
     if (data.status) updateFields.status = data.status;
-    if(data.frequency && data.scheduleTime){
+    if (data.frequency && data.scheduleTime) {
       const nextRunAt = calculateNextRunAt(data.frequency, data.scheduleTime);
       updateFields.nextRunAt = nextRunAt;
     }
@@ -207,9 +211,11 @@ export const generateContentService = async (schedule: any) => {
 
     // Ensure maxTokens is sufficient for the content length requested
     const adjustedMaxTokens = Math.max(maxTokens || 1000, 2000); // Minimum 2000 tokens
-    
-    console.log(`Using maxTokens: ${adjustedMaxTokens} (original: ${maxTokens})`);
-    
+
+    console.log(
+      `Using maxTokens: ${adjustedMaxTokens} (original: ${maxTokens})`
+    );
+
     const AI_Response = (await callAIWithPrompt(
       {
         aiProvider,
@@ -243,31 +249,50 @@ export const generateContentService = async (schedule: any) => {
     console.log("=== REGEX MATCHES ===");
     console.log("Title match:", titleMatch ? "✅" : "❌", titleMatch?.[0]);
     console.log("Description match:", descMatch ? "✅" : "❌", descMatch?.[0]);
-    console.log("Content match:", contentMatch ? "✅" : "❌", contentMatch?.[0]);
+    console.log(
+      "Content match:",
+      contentMatch ? "✅" : "❌",
+      contentMatch?.[0]
+    );
 
     if (!title) {
       console.error("⚠️ Title not found or empty");
       console.log("Searching for title patterns in response...");
-      const altTitleMatch = AI_Response.match(/===TITLE===([\s\S]*?)===DESCRIPTION===/i);
-      if (altTitleMatch) console.log("Alternative title found:", altTitleMatch[1]);
+      const altTitleMatch = AI_Response.match(
+        /===TITLE===([\s\S]*?)===DESCRIPTION===/i
+      );
+      if (altTitleMatch)
+        console.log("Alternative title found:", altTitleMatch[1]);
     }
     if (!description) {
       console.error("⚠️ Description not found or empty");
       console.log("Searching for description patterns in response...");
-      const altDescMatch = AI_Response.match(/===DESCRIPTION===([\s\S]*?)===CONTENT===/i);
-      if (altDescMatch) console.log("Alternative description found:", altDescMatch[1]);
+      const altDescMatch = AI_Response.match(
+        /===DESCRIPTION===([\s\S]*?)===CONTENT===/i
+      );
+      if (altDescMatch)
+        console.log("Alternative description found:", altDescMatch[1]);
     }
     if (!content) {
       console.error("⚠️ Content not found or empty");
       console.log("Searching for content patterns in response...");
-      
+
       // Try to extract content even if ===END=== is missing (truncated response)
-      const altContentMatch = AI_Response.match(/===CONTENT===\s*\n?\s*([\s\S]*?)(?:===END===|$)/i);
+      const altContentMatch = AI_Response.match(
+        /===CONTENT===\s*\n?\s*([\s\S]*?)(?:===END===|$)/i
+      );
       if (altContentMatch) {
         const extractedContent = altContentMatch[1].trim();
-        console.log("Alternative content found (length:", extractedContent.length, ")");
-        console.log("Content preview:", extractedContent.substring(0, 200) + "...");
-        
+        console.log(
+          "Alternative content found (length:",
+          extractedContent.length,
+          ")"
+        );
+        console.log(
+          "Content preview:",
+          extractedContent.substring(0, 200) + "..."
+        );
+
         // Use the extracted content if it's substantial enough
         if (extractedContent.length > 50) {
           console.log("Using alternative content extraction");
@@ -367,7 +392,7 @@ export const checkScheduleService = async () => {
       status: "active",
       nextRunAt: { $lte: now },
     });
-
+    console.log(`Found ${dueSchedules} due schedules`);
     for (const schedule of dueSchedules) {
       try {
         await generateContentService(schedule);

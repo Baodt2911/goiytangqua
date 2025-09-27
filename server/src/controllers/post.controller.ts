@@ -12,15 +12,10 @@ import {
   getAllPostsService,
   deletePostService,
   getBestPostService,
-  // increaseViewService,
+  increaseViewService,
 } from "src/services";
 export const getAllPostsController = async (
-  req: Request<
-    {},
-    {},
-    {},
-    Partial<getAllPostRequestQueryDTO>
-  >,
+  req: Request<{}, {}, {}, Partial<getAllPostRequestQueryDTO>>,
   res: Response
 ) => {
   try {
@@ -32,7 +27,7 @@ export const getAllPostsController = async (
       isFeatured,
       generatedBy,
       tags,
-      filters
+      filters,
     } = req.query;
     const { status, element } = await getAllPostsService(viewer, {
       page: +page,
@@ -41,7 +36,7 @@ export const getAllPostsController = async (
       isFeatured,
       generatedBy,
       tags,
-      filters
+      filters,
     });
     res.status(status).json({
       status,
@@ -77,10 +72,7 @@ export const getPostController = async (
     });
   }
 };
-export const getBestPostController = async (
-  req: Request,
-  res: Response
-) => {
+export const getBestPostController = async (req: Request, res: Response) => {
   try {
     const { status, element } = await getBestPostService();
     res.status(status).json({
@@ -168,25 +160,25 @@ export const updatePostController = async (
     });
   }
 };
-// export const increaseViewController = async (
-//   req: Request<{ slug: string }>,
-//   res: Response
-// ) => {
-//   try {
-//     const { slug } = req.params;
-//     const user = req.user;
-//     const ip = req.ip;
+export const increaseViewController = async (
+  req: Request<{ slug: string }>,
+  res: Response
+) => {
+  try {
+    const { slug } = req.params;
+    const user = req.user;
+    const ip = req.ip;
 
-//     const { status, message } = await increaseViewService(slug, user, ip);
-//     res.status(status).json({ status, message });
-//   } catch (error: any) {
-//     console.error(error);
-//     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-//       status: StatusCodes.INTERNAL_SERVER_ERROR,
-//       error: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
-//     });
-//   }
-// };
+    const { status, message } = await increaseViewService(slug, user, ip);
+    res.status(status).json({ status, message });
+  } catch (error: any) {
+    console.error(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      error: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
+    });
+  }
+};
 export const deletePostController = async (
   req: Request<{ id: string }>,
   res: Response
