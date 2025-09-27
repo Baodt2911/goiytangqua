@@ -104,11 +104,13 @@ export type Relationship = Document & {
   relationshipType: string;
   preferences?: string[];
   anniversaries: {
+    _id: ObjectId;
     name: string;
     date: {
       day: number;
       month: number;
     };
+    lastNotified: Date;
   }[];
 };
 

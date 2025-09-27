@@ -12,6 +12,7 @@ const relationshipSchema = new Schema<Relationship>({
         day: { type: Number, required: true },
         month: { type: Number, required: true },
       },
+      lastNotified: { type: Date },
     },
   ],
 });

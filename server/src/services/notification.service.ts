@@ -1,7 +1,7 @@
 import { getRelationshipsWithAnniversaryToday } from "src/services";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { NotificationRequestDTO } from "src/dtos";
-import { _notification } from "src/models";
+import { _notification, _relationship } from "src/models";
 import { io } from "src/server";
 import { callAIWithPrompt } from "src/utils";
 
@@ -66,9 +66,9 @@ export const updateReadNotificationService = async (
 };
 export const sendNotificationService = async () => {
   try {
-    const today = new Date();
-    const day = today.getDate();
-    const month = today.getMonth() + 1;
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.getMonth() + 1;
     const exitstingAnniversaries = await getRelationshipsWithAnniversaryToday(
       day,
       month
@@ -77,6 +77,15 @@ export const sendNotificationService = async () => {
     for (const data of exitstingAnniversaries) {
       for (const item of data.anniversaries) {
         if (item.date.day === day && item.date.month === month) {
+          // Kiểm tra lastNotified
+          const last = item.lastNotified
+            ? item.lastNotified.toISOString().split("T")[0]
+            : null;
+          const today = now.toISOString().split("T")[0];
+          if (last === today) {
+            console.log(`Đã gửi thông báo cho ${data.name} hôm nay, bỏ qua...`);
+            continue; // Đã gửi thông báo hôm nay, bỏ qua
+          }
           const prompt = `Tạo các thông báo {title, message} dựa trên dữ liệu sau: ${JSON.stringify(
             {
               name: data.name,
@@ -93,10 +102,10 @@ export const sendNotificationService = async () => {
           )}. Tôi chỉ cần 1 thông báo duy nhất. Loại bỏ những thông tin không cần thiết, viết các thông báo trông bắt mắt, có hồn hơn, thêm các icon cần thiết, tối đa 2 icon. Đây chỉ là thông báo nhắc nhờ tôi`;
 
           const result = await callAIWithPrompt(
-            { aiProvider: "gemini", aiModel: "gemini-1.5-flash" },
+            { aiProvider: "gemini", aiModel: "gemini-2.5-flash" },
             prompt
           );
-
+          console.log("Kết quả từ AI:", result);
           const titleRegex = /"title": "(.*?)"/;
           const messageRegex = /"message": "(.*?)"/;
 
@@ -115,8 +124,18 @@ export const sendNotificationService = async () => {
           const { element } = await getNotificationService(
             data.userId.toString()
           );
-
+          // Gửi thông báo qua socket
           io.to(data.userId.toString()).emit("notification", element);
+
+          // Cấp nhật lastNotified
+          await _relationship.updateOne(
+            {
+              $and: [{ _id: data._id }, { "anniversaries._id": item._id }],
+            },
+            {
+              $set: { "anniversaries.$.lastNotified": new Date() },
+            }
+          );
         }
       }
     }
