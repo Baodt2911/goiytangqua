@@ -1,7 +1,10 @@
 import { Document } from "mongoose";
 import { Product } from "src/types";
 
-export type ProductRequestDTO = Omit<Product, keyof Document>;
+export type ProductRequestDTO = Omit<
+  Product,
+  "createdAt" | "updatedAt" | keyof Document
+>;
 export type getAllProductRequestQueryDTO = {
   page: number;
   pageSize: number;
