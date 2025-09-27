@@ -1,16 +1,12 @@
 import { Router } from "express";
 import {
-  addMessageConversationController,
   chatController,
   chatStreamController,
   getAllConversationsController,
   getMessagesConversationController,
+  deleteConversationController,
 } from "src/controllers";
-import {
-  validateAddMessageConversationRequest,
-  validateObjectIdRequest,
-  verifyAccessToken,
-} from "src/middlewares";
+import { validateObjectIdRequest, verifyAccessToken } from "src/middlewares";
 import { validateChatRequest } from "src/middlewares";
 const router: Router = Router();
 router.get("/conversations", verifyAccessToken, getAllConversationsController);
@@ -20,6 +16,12 @@ router.get(
   validateObjectIdRequest,
   getMessagesConversationController
 );
+router.delete(
+  "/conversations/delete/:id",
+  verifyAccessToken,
+  validateObjectIdRequest,
+  deleteConversationController
+);
 router.post("/default", verifyAccessToken, validateChatRequest, chatController);
 router.post(
   "/stream",
@@ -27,4 +29,5 @@ router.post(
   validateChatRequest,
   chatStreamController
 );
+
 export default router;

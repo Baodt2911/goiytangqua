@@ -44,6 +44,7 @@ const ConversationSidebar: React.FC<{
     };
     fetchConversations();
   }, []);
+
   return (
     <Card
       title={
@@ -62,7 +63,14 @@ const ConversationSidebar: React.FC<{
           </Space>
         </Flex>
       }
-      styles={{ body: { padding: 0, height: "calc(80vh - 57px)", display: "flex", flexDirection: "column" } }}
+      styles={{
+        body: {
+          padding: 0,
+          height: "calc(80vh - 57px)",
+          display: "flex",
+          flexDirection: "column",
+        },
+      }}
       bordered
       style={{ height: "80vh" }}
     >

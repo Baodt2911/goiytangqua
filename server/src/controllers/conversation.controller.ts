@@ -1,11 +1,12 @@
+import exp from "constants";
 import { Request, Response } from "express";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
-import { ConversationRequestDTO, MessageRequestDTO } from "src/dtos";
+import { MessageRequestDTO } from "src/dtos";
 import {
   addMessageConversationService,
-  createConversationService,
   getAllConversationsService,
   getMessagesConversationService,
+  deleteConversationsService,
 } from "src/services";
 
 export const getAllConversationsController = async (
@@ -55,6 +56,23 @@ export const addMessageConversationController = async (
       id,
       data
     );
+    res.status(status).json({ status, message });
+  } catch (error: any) {
+    console.error(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      error: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
+    });
+  }
+};
+export const deleteConversationController = async (
+  req: Request<{ id: string }>,
+  res: Response
+) => {
+  try {
+    const user = req.user;
+    const { id } = req.params;
+    const { status, message } = await deleteConversationsService(user, id);
     res.status(status).json({ status, message });
   } catch (error: any) {
     console.error(error);

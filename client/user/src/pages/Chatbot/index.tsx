@@ -1,14 +1,16 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { Card, Flex, Spin, Button, Typography } from "antd";
+import { Card, Flex, Spin, Button, Typography, Popconfirm, App } from "antd";
 
 import {
   getMessagesConversationAsync,
   getAllConversationsAsync,
+  deleteConversationAsync,
 } from "../../features/chat/chat.service";
 import ChatInput from "../../components/ChatInput";
 import MessageBubble from "../../components/MessageBubble";
 import ConversationSidebar from "../../components/ConversationSidebar";
 import { useAppDispatch, useAppSelector } from "../../app/hook";
+import { DeleteOutlined } from "@ant-design/icons";
 import {
   getMessagesFailure,
   getMessagesStart,
@@ -21,12 +23,14 @@ import {
   getConversationsStart,
   getConversationsSuccess,
   getConversationsFailure,
+  deleteConversation,
 } from "../../features/chat/conversation.slice";
 import { RootState } from "../../app/store";
 import { useNavigate } from "react-router-dom";
 import { sendChatMessage } from "../../features/socket/socket.service";
 
 const ChatBotPage: React.FC = () => {
+  const { message } = App.useApp();
   const [activeId, setActiveId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, loading } = useAppSelector(
@@ -114,43 +118,55 @@ const ChatBotPage: React.FC = () => {
     setActiveId(id);
   };
 
+  const handleDeleteConversation = async (id: string) => {
+    try {
+      const data = await deleteConversationAsync(id);
+      if (data.message >= 400) {
+        message.error(data.message);
+        return;
+      }
+      message.success(data.message);
+      dispatch(deleteConversation(id));
+    } catch (error: any) {
+      console.error(error);
+      dispatch(getConversationsFailure(error.message));
+    }
+  };
+
   // Show authentication notification if user is not authenticated
   if (!isAuthenticated) {
     return (
-        <Card style={{ width: "50%", margin: "0 auto",marginTop:50 }}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: "60vh",
-              textAlign: "center",
-            }}
-          >
-            <Typography.Title level={3} style={{ marginBottom: 16 }}>
-              Bạn cần phải đăng nhập để sử dụng chatbot
-            </Typography.Title>
-            <Typography.Text style={{ marginBottom: 32, fontSize: "16px" }}>
-              Vui lòng đăng nhập để tiếp tục sử dụng tính năng chatbot AI
-            </Typography.Text>
-            <Flex gap={16}>
-              <Button 
-                type="primary" 
-                size="large"
-                onClick={() => navigate("/auth/login")}
-              >
-                Đăng nhập
-              </Button>
-              <Button 
-                size="large"
-                onClick={() => navigate(-1)}
-              >
-                Quay lại
-              </Button>
-            </Flex>
-          </div>
-        </Card>
+      <Card style={{ width: "50%", margin: "0 auto", marginTop: 50 }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "60vh",
+            textAlign: "center",
+          }}
+        >
+          <Typography.Title level={3} style={{ marginBottom: 16 }}>
+            Bạn cần phải đăng nhập để sử dụng chatbot
+          </Typography.Title>
+          <Typography.Text style={{ marginBottom: 32, fontSize: "16px" }}>
+            Vui lòng đăng nhập để tiếp tục sử dụng tính năng chatbot AI
+          </Typography.Text>
+          <Flex gap={16}>
+            <Button
+              type="primary"
+              size="large"
+              onClick={() => navigate("/auth/login")}
+            >
+              Đăng nhập
+            </Button>
+            <Button size="large" onClick={() => navigate(-1)}>
+              Quay lại
+            </Button>
+          </Flex>
+        </div>
+      </Card>
     );
   }
 
@@ -165,6 +181,32 @@ const ChatBotPage: React.FC = () => {
           />
         </div>
         <Flex vertical style={{ flex: 1 }}>
+          <div
+            style={{
+              background: "#fff",
+              padding: "10px 16px",
+              borderBottom: "1px solid #f0f0f0",
+              display: "flex",
+            }}
+          >
+            {activeId && (
+              <Popconfirm
+                title="Thông báo"
+                description="Bạn có chắc chắn muốn xóa cuộc hội thoại này không?"
+                okText="Xóa"
+                cancelText="Hủy"
+                onConfirm={() => handleDeleteConversation(activeId)}
+              >
+                <Button
+                  type="link"
+                  style={{ color: "red" }}
+                  icon={<DeleteOutlined style={{ color: "red" }} />}
+                >
+                  Xóa cuộc hội thoại
+                </Button>
+              </Popconfirm>
+            )}
+          </div>
           <Card styles={{ body: { padding: 0 } }}>
             <div
               style={{

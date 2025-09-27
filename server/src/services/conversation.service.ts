@@ -97,3 +97,24 @@ export const createConversationService = async (
     throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
   }
 };
+export const deleteConversationsService = async (user: any, _id: string) => {
+  try {
+    const existingConversations = await _conversation.findOneAndDelete({
+      userId: user.userId,
+      _id,
+    });
+    if (!existingConversations) {
+      return {
+        status: StatusCodes.NOT_FOUND,
+        message: "Đoạn chat không tồn tại hoặc đã bị xóa",
+      };
+    }
+    return {
+      status: StatusCodes.OK,
+      message: "Xoá đoạn chat thành công",
+    };
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
