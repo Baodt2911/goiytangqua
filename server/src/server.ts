@@ -54,7 +54,7 @@ app.use(
     saveUninitialized: false, // Lưu session mới ngay cả khi chưa khởi tạo
     cookie: {
       httpOnly: true, // Bảo vệ cookie khỏi bị truy cập bởi JavaScript
-      secure: false, // Đặt true nếu dùng HTTPS
+      secure: process.env.NODE_ENV === "production", // Đặt true nếu dùng HTTPS
       maxAge: 1000 * 60 * 60 * 24, // Cookie tồn tại trong 1 ngày
     },
     store: MongoStore.create({
