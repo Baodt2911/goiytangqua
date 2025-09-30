@@ -57,7 +57,7 @@ export const loginController = async (
         path: "/",
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         expires: new Date(currentTime.getTime() + 15 * 24 * 60 * 60 * 1000), // 15 days
       });
     }
@@ -84,7 +84,7 @@ export const googleCallbackController = async (req: Request, res: Response) => {
         path: "/",
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         expires: new Date(currentTime.getTime() + 15 * 24 * 60 * 60 * 1000), // 15 days
       });
     }
