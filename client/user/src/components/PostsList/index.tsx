@@ -9,6 +9,7 @@ import {
 import { getAllPostAsync } from "../../features/post/post.service";
 import { RootState } from "../../app/store";
 import { getCloudinaryUrl } from "../../utils/image";
+import { useNavigate } from "react-router-dom";
 
 const { Text, Title } = Typography;
 const SkeletonListCard: React.FC = () => {
@@ -31,20 +32,24 @@ interface PostListProps {
   isSearching?: boolean;
 }
 
-const PostList: React.FC<PostListProps> = ({ searchKeyword, filters, isSearching }) => {
+const PostList: React.FC<PostListProps> = ({
+  searchKeyword,
+  filters,
+  isSearching,
+}) => {
   const { posts, loading } = useAppSelector((state: RootState) => state.post);
   const dispatch = useAppDispatch();
-  
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         dispatch(getPostsStart());
-        
+
         // Build search parameters
         const searchParams: any = {
           pageSize: 6,
         };
-        
+
         if (searchKeyword) {
           searchParams.search = searchKeyword;
         }
@@ -72,10 +77,15 @@ const PostList: React.FC<PostListProps> = ({ searchKeyword, filters, isSearching
           grid={{ gutter: 16, column: 2 }}
           dataSource={posts}
           loading={loading}
-          locale={{ emptyText: "Không có bài viết nào liên quan đến tìm kiếm của bạn." }}
+          locale={{
+            emptyText: "Không có bài viết nào liên quan đến tìm kiếm của bạn.",
+          }}
           renderItem={(item) => (
             <List.Item>
               <Card
+                onClick={() => {
+                  navigate(`/article/${item.slug}`);
+                }}
                 hoverable
                 cover={
                   <img
@@ -88,7 +98,9 @@ const PostList: React.FC<PostListProps> = ({ searchKeyword, filters, isSearching
                   />
                 }
               >
-                <Title level={4}>{item.title}</Title>
+                <Title ellipsis={true} level={4}>
+                  {item.title}
+                </Title>
                 <Text ellipsis={true}>{item.description}</Text>
               </Card>
             </List.Item>

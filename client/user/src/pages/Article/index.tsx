@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Spin, Row, Col, List } from "antd";
+import { Button, Row, Col, List } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { PostType } from "../../types/post.type";
 import {
   getPostBySlugAsync,
   increaseViewPostAsync,
 } from "../../features/post/post.service";
-import {
-  getCommentsByPostIdAsync,
-} from "../../features/comment/comment.service";
+import { getCommentsByPostIdAsync } from "../../features/comment/comment.service";
 import {
   getCommentsStart,
   getCommentsSuccess,
@@ -22,6 +20,7 @@ import CommentList from "../../components/CommentList";
 import CommentInput from "../../components/CommentInput";
 import { getCloudinaryUrl } from "../../utils/image";
 import SkeletonPostCard from "../../components/SkeletonPostCard";
+import { useAppSelector } from "../../app/hook";
 
 const Article: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -29,11 +28,11 @@ const Article: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [post, setPost] = useState<PostType | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Redux state for comments
-  const { error } = useSelector(
-    (state: RootState) => state.comment
+  const isAuthenticated = useAppSelector(
+    (state: RootState) => state.auth.isAuthenticated
   );
+  // Redux state for comments
+  const { error } = useSelector((state: RootState) => state.comment);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -78,10 +77,10 @@ const Article: React.FC = () => {
   useEffect(() => {
     const fetchComments = async () => {
       if (!post?._id) return;
-      
+
       try {
         dispatch(getCommentsStart());
-        const {comments} = await getCommentsByPostIdAsync(post._id);
+        const { comments } = await getCommentsByPostIdAsync(post._id);
         dispatch(getCommentsSuccess(comments));
       } catch (error) {
         console.error("Error fetching comments:", error);
@@ -93,7 +92,6 @@ const Article: React.FC = () => {
       fetchComments();
     }
   }, [post, dispatch]);
-
 
   const hasProducts =
     !!post && Array.isArray(post.products) && post.products.length > 0;
@@ -114,20 +112,30 @@ const Article: React.FC = () => {
         <Row gutter={[24, 24]}>
           <Col xs={24} md={hasProducts ? 18 : 24}>
             <PostCard post={post!} isDetail={true} />
-            
+
             {/* Comments Section */}
             <div style={{ marginTop: 48 }}>
-              <CommentInput postId={post?._id!}/>
-              <CommentList/>
+              {isAuthenticated && <CommentInput postId={post?._id || ""} />}
+              <CommentList />
               {error && (
-                <div style={{ marginTop: 16, color: "#ff4d4f", textAlign: "center" }}>
+                <div
+                  style={{
+                    marginTop: 16,
+                    color: "#ff4d4f",
+                    textAlign: "center",
+                  }}
+                >
                   {error}
                 </div>
               )}
             </div>
           </Col>
           {hasProducts && (
-            <Col xs={24} md={6} style={{ backgroundColor: "#fff",padding: 24 }}>
+            <Col
+              xs={24}
+              md={6}
+              style={{ backgroundColor: "#fff", padding: 24 }}
+            >
               <div
                 style={{
                   position: "sticky",
@@ -144,7 +152,11 @@ const Article: React.FC = () => {
                       <div style={{ display: "flex", gap: 12, width: "100%" }}>
                         <img
                           alt={item.name}
-                          src={getCloudinaryUrl(item.image,{w:72,h:72,c:"fill"})}
+                          src={getCloudinaryUrl(item.image, {
+                            w: 72,
+                            h: 72,
+                            c: "fill",
+                          })}
                           style={{
                             width: 72,
                             height: 72,

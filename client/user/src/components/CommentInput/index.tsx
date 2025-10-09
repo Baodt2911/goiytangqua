@@ -1,18 +1,18 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { Input, Button, Form, Space, Avatar,App } from "antd";
-import { SendOutlined, UserOutlined } from "@ant-design/icons";
-import {  AppDispatch } from "../../app/store";
+import { Input, Button, Form, Space, Avatar, App } from "antd";
+import { SendOutlined } from "@ant-design/icons";
+import { AppDispatch } from "../../app/store";
 import { createComment } from "../../features/comment/comment.slice";
 import { createCommentAsync } from "../../features/comment/comment.service";
 import { useAppSelector } from "../../app/hook";
 import { RootState } from "../../app/store";
 const { TextArea } = Input;
 
-const CommentInput: React.FC<{postId: string}> = ({postId}) => {
-    const {message} = App.useApp();
+const CommentInput: React.FC<{ postId: string }> = ({ postId }) => {
+  const { message } = App.useApp();
   const dispatch = useDispatch<AppDispatch>();
-   const {name} = useAppSelector((state: RootState) => state.user);
+  const { name } = useAppSelector((state: RootState) => state.user);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [form] = Form.useForm();
   const handleSubmit = async (values: { content: string }) => {
@@ -29,11 +29,18 @@ const CommentInput: React.FC<{postId: string}> = ({postId}) => {
         setIsLoading(false);
         return message.warning(data.message);
       }
-      dispatch(createComment({userId: {name: name! }, postId: postId, content: values.content.trim(), createdAt: new Date().toISOString()}));
-    
+      dispatch(
+        createComment({
+          userId: { name: name! },
+          postId: postId,
+          content: values.content.trim(),
+          createdAt: new Date().toISOString(),
+        })
+      );
+
       form.resetFields();
       message.success(data.message);
-    } catch (error:any) {
+    } catch (error: any) {
       console.error("Error submitting comment:", error);
       message.error(error.message);
     } finally {
@@ -42,15 +49,22 @@ const CommentInput: React.FC<{postId: string}> = ({postId}) => {
   };
 
   return (
-    <div style={{ marginTop: 32, padding: 24, backgroundColor: "#fafafa", borderRadius: 8 }}>
+    <div
+      style={{
+        marginTop: 32,
+        padding: 24,
+        backgroundColor: "#fafafa",
+        borderRadius: 8,
+      }}
+    >
       <h3 style={{ marginBottom: 16, fontSize: 16, fontWeight: 600 }}>
         Để lại bình luận
       </h3>
       <Form form={form} onFinish={handleSubmit} layout="vertical">
         <Space align="start" style={{ width: "100%" }}>
-            <Avatar style={{ background: "#FF6B81" }} size={40}>
+          <Avatar style={{ background: "#FF6B81" }} size={40}>
             {name?.slice(0, 1)}
-            </Avatar>
+          </Avatar>
           <div style={{ flex: 1, width: "100%" }}>
             <Form.Item
               name="content"
