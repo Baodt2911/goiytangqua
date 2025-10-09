@@ -29,7 +29,7 @@ export const configPassport = () => {
       {
         clientID: process.env.GOOGLE_CLIENT_ID || "",
         clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-        callbackURL: process.env.URL_CLIENT + "/auth/google/callback",
+        callbackURL: location.origin + "/auth/google/callback",
         passReqToCallback: true,
       },
       async (req, accessToken, refreshToken, profile, done) => {
