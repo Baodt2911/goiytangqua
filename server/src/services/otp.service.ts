@@ -53,8 +53,8 @@ export const sendToEmail = async (
   try {
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.EMAIL,
         pass: process.env.PASS,
@@ -74,7 +74,7 @@ export const sendToEmail = async (
 export const sendOtpService = async (email: string) => {
   try {
     const isEmail = await _user.findOne({ email });
-    if (!isEmail) {
+    if (!!isEmail) {
       return {
         status: StatusCodes.BAD_REQUEST,
         message: "Email đã đăng ký tài khoản",
