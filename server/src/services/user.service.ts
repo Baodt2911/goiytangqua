@@ -184,7 +184,8 @@ export const requestResetPasswordService = async (email: string) => {
       otp,
     };
     const token = generateResetToken(payload);
-    const reset_url = process.env.URL_CLIENT + `/reset-password?token=${token}`;
+    const reset_url =
+      process.env.URL_CLIENT + `/auth/reset-password?token=${token}`;
     const title = "goiytangqua - Đặt lại mật khẩu";
     const html = `<p>Thay đổi mật khẩu của bạn: ${reset_url}</p>`;
     await sendToEmail(email, title, html);

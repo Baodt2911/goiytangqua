@@ -59,3 +59,26 @@ export const logoutAsync = async () => {
     console.error("Failed logout: ", error);
   }
 };
+
+export const requestResetPasswordAsync = async (email: string) => {
+  const res = await axios.post(
+    `${import.meta.env.VITE_URL_API}/user/request-reset-password`,
+    { email }
+  );
+  return res.data;
+};
+
+export const resetPasswordAsync = async (newPassword: string) => {
+  const resetToken = localStorage.getItem("resetToken");
+  const res = await axios.post(
+    `${import.meta.env.VITE_URL_API}/user/reset-password`,
+    { newPassword },
+    {
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${resetToken}`,
+      },
+    }
+  );
+  return res.data;
+};

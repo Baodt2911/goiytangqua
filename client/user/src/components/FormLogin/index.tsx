@@ -170,8 +170,16 @@ const FormLogin: React.FC = () => {
         </Button>
       </Space>
       <Typography.Paragraph style={{ textAlign: "center", marginTop: 20 }}>
-        Bạn chưa có tài khoản?{" "}
+        Bạn chưa có tài khoản?
         <a onClick={() => navigate("/auth/register")}>Đăng ký</a>
+        <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
+          <a
+            style={{ color: "#DB4437" }}
+            onClick={() => navigate("/auth/forgot-password")}
+          >
+            Quên mật khẩu?
+          </a>
+        </div>
       </Typography.Paragraph>
     </Card>
   );

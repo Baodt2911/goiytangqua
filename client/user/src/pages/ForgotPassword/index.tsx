@@ -1,19 +1,19 @@
 import React from "react";
 import { Layout } from "antd";
-import FormResetPassword from "../../components/FormResetPassword";
+import FormForgotPassword from "../../components/FormForgotPassword";
 
 const { Content } = Layout;
 
-const ResetPassword: React.FC = () => {
+const ForgotPassword: React.FC = () => {
   return (
     <Content
       style={{
         marginTop: 50,
       }}
     >
-      <FormResetPassword />
+      <FormForgotPassword />
     </Content>
   );
 };
 
-export default ResetPassword;
+export default ForgotPassword;

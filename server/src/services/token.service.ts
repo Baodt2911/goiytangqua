@@ -39,7 +39,7 @@ export const generateResetToken = (payload: any) => {
   }
   return jwt.sign(
     {
-      userId: payload._id,
+      userId: payload._id || payload.userId,
       otp: payload.otp,
     },
     secretKey,

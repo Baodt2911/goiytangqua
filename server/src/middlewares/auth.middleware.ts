@@ -124,7 +124,7 @@ export const verifyResetToken = async (
   next: NextFunction
 ): Promise<any> => {
   try {
-    const token: string = req.body.token;
+    const token: string = req.headers.authorization?.split(" ")[1] || "";
     if (!token) {
       return res.status(StatusCodes.UNAUTHORIZED).json({
         status: StatusCodes.UNAUTHORIZED,
