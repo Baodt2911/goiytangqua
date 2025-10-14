@@ -9,6 +9,7 @@ import {
 } from "../../features/product/product.slice";
 import { getAllProductsAsync } from "../../features/product/product.service";
 import { getCloudinaryUrl } from "../../utils/image";
+
 const SkeletonListCard: React.FC = () => {
   return (
     <Row gutter={[16, 16]}>
@@ -28,7 +29,10 @@ interface ProductListProps {
   isSearching?: boolean;
 }
 
-const ProductList: React.FC<ProductListProps> = ({ searchKeyword, isSearching }) => {
+const ProductList: React.FC<ProductListProps> = ({
+  searchKeyword,
+  isSearching,
+}) => {
   const { loading, products } = useAppSelector(
     (state: RootState) => state.product
   );
@@ -38,12 +42,12 @@ const ProductList: React.FC<ProductListProps> = ({ searchKeyword, isSearching })
     const fetchProducts = async () => {
       try {
         dispatch(getProductsStart());
-        
+
         // Build search parameters
         const searchParams: any = {
           pageSize: 8,
         };
-        
+
         if (searchKeyword) {
           searchParams.search = searchKeyword;
         }
@@ -64,19 +68,27 @@ const ProductList: React.FC<ProductListProps> = ({ searchKeyword, isSearching })
       ) : (
         <List
           style={{ width: "100%" }}
-          grid={{ gutter: 16, column: 4 }}
+          grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4, xl: 4, xxl: 4 }}
           dataSource={products}
           loading={loading}
-          locale={{ emptyText: "Không có sản phẩm nào liên quan đến tìm kiếm của bạn." }}
+          locale={{
+            emptyText: "Không có sản phẩm nào liên quan đến tìm kiếm của bạn.",
+          }}
           renderItem={(item) => (
             <List.Item>
               <Card
                 hoverable
                 cover={
                   <img
-                    style={{ height: 240, objectFit: "cover" }}
+                    style={{
+                      height: 240,
+                      objectFit: "cover",
+                    }}
                     alt={item.name}
-                    src={getCloudinaryUrl(item.image,{h:240,c:"fill",q:100})}
+                    src={getCloudinaryUrl(item.image, {
+                      c: "fill",
+                      q: 100,
+                    })}
                   />
                 }
               >

@@ -74,7 +74,7 @@ const PostList: React.FC<PostListProps> = ({
       ) : (
         <List
           style={{ width: "100%" }}
-          grid={{ gutter: 16, column: 2 }}
+          grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 2, xl: 2, xxl: 2 }}
           dataSource={posts}
           loading={loading}
           locale={{

@@ -1,14 +1,17 @@
-import React, { useRef, useState } from "react";
-import { Button, Flex, Input, Space, Tag, Tooltip } from "antd";
+import React, { useMemo, useRef, useState } from "react";
+import { Button, Flex, Grid, Input, Space, Tag, Tooltip } from "antd";
 import {
   PaperClipOutlined,
   SmileOutlined,
   AudioOutlined,
   ArrowUpOutlined,
 } from "@ant-design/icons";
+const { useBreakpoint } = Grid;
 const ChatInput: React.FC<{ onSend: (text: string) => void }> = ({
   onSend,
 }) => {
+  const screens = useBreakpoint();
+  const isMobile = useMemo(() => !screens.md, [screens]); // Mobile: < md
   const [value, setValue] = useState("");
   const inputRef = useRef<any>(null);
   const suggestions = [
@@ -43,19 +46,25 @@ const ChatInput: React.FC<{ onSend: (text: string) => void }> = ({
     }
   };
   return (
-    <div style={{ padding: 12 }}>
-      <Flex wrap="wrap" gap={8} style={{ marginBottom: 8 }}>
-        {suggestions.map((s) => (
-          <Tag
-            key={s.text}
-            color={s.color as any}
-            style={{ cursor: "pointer", borderRadius: 16, padding: "4px 10px" }}
-            onClick={() => handlePick(s.text)}
-          >
-            {s.text}
-          </Tag>
-        ))}
-      </Flex>
+    <Flex vertical style={{ flex: 1, padding: 12 }}>
+      {!isMobile && (
+        <Flex wrap gap={8} style={{ marginBottom: 8 }}>
+          {suggestions.map((s) => (
+            <Tag
+              key={s.text}
+              color={s.color as any}
+              style={{
+                cursor: "pointer",
+                borderRadius: 16,
+                padding: "4px 10px",
+              }}
+              onClick={() => handlePick(s.text)}
+            >
+              {s.text}
+            </Tag>
+          ))}
+        </Flex>
+      )}
       <div
         style={{
           background: "#fff",
@@ -97,7 +106,7 @@ const ChatInput: React.FC<{ onSend: (text: string) => void }> = ({
           />
         </Flex>
       </div>
-    </div>
+    </Flex>
   );
 };
 export default ChatInput;

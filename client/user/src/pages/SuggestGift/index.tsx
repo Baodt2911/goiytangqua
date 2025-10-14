@@ -1,21 +1,37 @@
-import { Button, Drawer, Flex, Layout, Space, Typography, Radio, Tooltip } from "antd";
+import {
+  Button,
+  Drawer,
+  Flex,
+  Layout,
+  Space,
+  Typography,
+  Radio,
+  Tooltip,
+  Grid,
+} from "antd";
 const { Content } = Layout;
 import { SearchOutlined } from "@ant-design/icons";
 import GiftFilter from "../../components/GiftFilter";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import PostList from "../../components/PostsList";
 import ProductList from "../../components/ProductsList";
 
 const { Title } = Typography;
-
-type SearchType = 'posts' | 'products';
+const { useBreakpoint } = Grid;
+type SearchType = "posts" | "products";
 
 const SuggestGift: React.FC = () => {
+  const screens = useBreakpoint();
+
+  const isTabletOrMobile = useMemo(() => !screens.xl, [screens]);
+
   const [open, setOpen] = useState(false);
   const [keyword, setKeyWord] = useState<string>("");
-  const [searchType, setSearchType] = useState<SearchType>('posts');
+  const [searchType, setSearchType] = useState<SearchType>("posts");
   const [isSearching, setIsSearching] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<Record<string, string | string[]>>({});
+  const [appliedFilters, setAppliedFilters] = useState<
+    Record<string, string | string[]>
+  >({});
 
   const handleSearch = () => {
     if (!keyword.trim() && Object.keys(appliedFilters).length === 0) {
@@ -45,7 +61,7 @@ const SuggestGift: React.FC = () => {
         {/* Search Type Selector */}
         <Flex
           style={{
-            width: "60%",
+            width: isTabletOrMobile ? "90%" : "60%",
             padding: "20px",
             background: "#f8f9fa",
             borderRadius: "8px",
@@ -74,22 +90,28 @@ const SuggestGift: React.FC = () => {
 
         {/* Search */}
         <Flex
-          gap={"middle"}
+          gap={isTabletOrMobile ? "small" : "middle"}
           align="center"
           style={{
-            width: "60%",
+            width: isTabletOrMobile ? "90%" : "60%",
             boxShadow: "0 5px 10px 0 #e9e9e9",
-            padding: "0 25px 0 0",
+            paddingRight: isTabletOrMobile ? 20 : 25,
             background: "#fff",
           }}
         >
           <input
-            placeholder={`Tìm kiếm ${searchType === 'posts' ? 'bài viết gợi ý' : 'sản phẩm'} ( vd: ${searchType === 'posts' ? 'Món quà tặng mẹ, Quà cho người yêu' : 'Điện thoại, Laptop, Quần áo'}, ... )`}
+            placeholder={`Tìm kiếm ${
+              searchType === "posts" ? "bài viết gợi ý" : "sản phẩm"
+            } ( vd: ${
+              searchType === "posts"
+                ? "Món quà tặng mẹ, Quà cho người yêu"
+                : "Điện thoại, Laptop, Quần áo"
+            }, ... )`}
             style={{
               width: "100%",
               height: 60,
-              padding: "35px 50px",
-              fontSize: 18,
+              padding: isTabletOrMobile ? "10px 20px" : "35px 50px",
+              fontSize: isTabletOrMobile ? 14 : 18,
               fontFamily: "Oswald",
               border: "none",
               outline: "none",
@@ -97,22 +119,29 @@ const SuggestGift: React.FC = () => {
             value={keyword}
             onChange={(e) => setKeyWord(e.target.value)}
             onKeyPress={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === "Enter") {
                 handleSearch();
               }
             }}
           />
 
-          <Tooltip 
-            title={searchType === 'products' ? "Sản phẩm chưa có bộ lọc nâng cao" : ""}
+          <Tooltip
+            title={
+              searchType === "products"
+                ? "Sản phẩm chưa có bộ lọc nâng cao"
+                : ""
+            }
             placement="top"
           >
             <Button
               color="danger"
               variant="filled"
-              style={{ fontFamily: "Oswald", padding: "20px 25px", fontSize: 16 }}
+              style={{
+                fontFamily: "Oswald",
+                padding: isTabletOrMobile ? "10px 15px" : "20px 25px",
+              }}
               onClick={() => setOpen(true)}
-              disabled={searchType === 'products'}
+              disabled={searchType === "products"}
             >
               Lọc nâng cao
             </Button>
@@ -121,31 +150,34 @@ const SuggestGift: React.FC = () => {
             type="primary"
             size="large"
             icon={<SearchOutlined />}
-            style={{ fontFamily: "Oswald", padding: "20px 25px" }}
+            style={{
+              fontFamily: "Oswald",
+              padding: isTabletOrMobile ? "10px 15px" : "20px 25px",
+            }}
             onClick={handleSearch}
           >
-            Tìm kiếm
+            {isTabletOrMobile ? "" : "Tìm kiếm"}
           </Button>
         </Flex>
         {/* Từ khóa  */}
         <Flex
           style={{
-            width: "60%",
-            padding: "0 20px",
+            width: isTabletOrMobile ? "90%" : "60%",
+            padding: isTabletOrMobile ? 0 : "0 20px",
           }}
           align="center"
-          gap={"large"}
+          gap={isTabletOrMobile ? "middle" : "large"}
           wrap={true}
         >
           <Title style={{ fontFamily: "Oswald" }} level={5}>
             Từ khóa đề xuất:
           </Title>
-          <Space size={"large"} wrap={true}>
+          <Space size={isTabletOrMobile ? "middle" : "large"} wrap={true}>
             <Button
               color="primary"
               variant="outlined"
               style={{ fontFamily: "Oswald" }}
-              size="large"
+              size={isTabletOrMobile ? "middle" : "large"}
               onClick={() => setKeyWord("Món quà tặng mẹ")}
             >
               Món quà tặng mẹ
@@ -154,7 +186,7 @@ const SuggestGift: React.FC = () => {
               color="primary"
               variant="outlined"
               style={{ fontFamily: "Oswald" }}
-              size="large"
+              size={isTabletOrMobile ? "middle" : "large"}
               onClick={() => setKeyWord("Quà sinh nhật bạn thân")}
             >
               Quà sinh nhật bạn thân
@@ -163,7 +195,7 @@ const SuggestGift: React.FC = () => {
               color="primary"
               variant="outlined"
               style={{ fontFamily: "Oswald" }}
-              size="large"
+              size={isTabletOrMobile ? "middle" : "large"}
               onClick={() => setKeyWord("Quà tặng người yêu")}
             >
               Quà tặng người yêu
@@ -172,7 +204,7 @@ const SuggestGift: React.FC = () => {
               color="primary"
               variant="outlined"
               style={{ fontFamily: "Oswald" }}
-              size="large"
+              size={isTabletOrMobile ? "middle" : "large"}
               onClick={() => setKeyWord("Cầu lông")}
             >
               Cầu lông
@@ -181,7 +213,7 @@ const SuggestGift: React.FC = () => {
               color="primary"
               variant="outlined"
               style={{ fontFamily: "Oswald" }}
-              size="large"
+              size={isTabletOrMobile ? "middle" : "large"}
               onClick={() => setKeyWord("Công nghệ thông tin")}
             >
               Công nghệ thông tin
@@ -190,7 +222,7 @@ const SuggestGift: React.FC = () => {
               color="primary"
               variant="outlined"
               style={{ fontFamily: "Oswald" }}
-              size="large"
+              size={isTabletOrMobile ? "middle" : "large"}
               onClick={() => setKeyWord("Cung nhân mã")}
             >
               Cung nhân mã
@@ -199,15 +231,22 @@ const SuggestGift: React.FC = () => {
         </Flex>
         {/* Filter  */}
         <Drawer
-          title={<Title level={3}>Bộ lọc nâng cao</Title>}
+          title={
+            <Title
+              style={{ textAlign: isTabletOrMobile ? "right" : "left" }}
+              level={3}
+            >
+              Bộ lọc nâng cao
+            </Title>
+          }
           placement={"right"}
-          closable={false}
+          closable={isTabletOrMobile}
           onClose={() => setOpen(false)}
           open={open}
           key={"right"}
-          width={"50%"}
+          width={isTabletOrMobile ? "100%" : "60%"}
         >
-          <GiftFilter 
+          <GiftFilter
             onApplyFilters={handleApplyFilters}
             onClearFilters={handleClearSearch}
           />
@@ -216,34 +255,49 @@ const SuggestGift: React.FC = () => {
         {/* Search Results or Default Content */}
         <Flex
           style={{
-            width: "60%",
+            width: isTabletOrMobile ? "90%" : "60%",
             marginTop: "50px",
           }}
           gap={"large"}
           vertical
         >
           {/* Show clear search button when searching */}
-          {isSearching && (keyword || Object.keys(appliedFilters).length > 0) && (
-            <Flex justify="space-between" align="center">
-              <Title level={4} style={{ fontFamily: "Oswald", color: "#FF6B81" }}>
-                Kết quả tìm kiếm {searchType === 'posts' ? 'bài viết' : 'sản phẩm'}
-                {keyword && ` cho "${keyword}"`}
-              </Title>
-              <Button onClick={handleClearSearch} style={{ fontFamily: "Oswald" }}>
-                Xóa tìm kiếm
-              </Button>
-            </Flex>
-          )}
+          {isSearching &&
+            (keyword || Object.keys(appliedFilters).length > 0) && (
+              <Flex
+                vertical={isTabletOrMobile}
+                justify="space-between"
+                align="center"
+              >
+                <Title
+                  level={4}
+                  style={{ fontFamily: "Oswald", color: "#FF6B81" }}
+                >
+                  Kết quả tìm kiếm
+                  {searchType === "posts" ? "bài viết" : "sản phẩm"}
+                  {keyword && ` cho "${keyword}"`}
+                </Title>
+                <Button
+                  onClick={handleClearSearch}
+                  style={{ fontFamily: "Oswald" }}
+                >
+                  Xóa tìm kiếm
+                </Button>
+              </Flex>
+            )}
 
           {/* Conditional rendering based on search type */}
-          {searchType === 'posts' ? (
+          {searchType === "posts" ? (
             <>
               {!isSearching && (
-                <Title level={4} style={{ fontFamily: "Oswald", color: "#FF6B81" }}>
+                <Title
+                  level={4}
+                  style={{ fontFamily: "Oswald", color: "#FF6B81" }}
+                >
                   Những gợi ý hay về các món quà
                 </Title>
               )}
-              <PostList 
+              <PostList
                 searchKeyword={isSearching ? keyword : undefined}
                 filters={isSearching ? appliedFilters : undefined}
                 isSearching={isSearching}
@@ -252,11 +306,14 @@ const SuggestGift: React.FC = () => {
           ) : (
             <>
               {!isSearching && (
-                <Title level={4} style={{ fontFamily: "Oswald", color: "#FF6B81" }}>
+                <Title
+                  level={4}
+                  style={{ fontFamily: "Oswald", color: "#FF6B81" }}
+                >
                   Các sản phẩm được lựa chọn mua nhiều nhất
                 </Title>
               )}
-              <ProductList 
+              <ProductList
                 searchKeyword={isSearching ? keyword : undefined}
                 isSearching={isSearching}
               />
@@ -266,16 +323,22 @@ const SuggestGift: React.FC = () => {
           {/* Show both when not searching */}
           {!isSearching && (
             <>
-              {searchType === 'posts' ? (
+              {searchType === "posts" ? (
                 <>
-                  <Title level={4} style={{ fontFamily: "Oswald", color: "#FF6B81" }}>
+                  <Title
+                    level={4}
+                    style={{ fontFamily: "Oswald", color: "#FF6B81" }}
+                  >
                     Các sản phẩm được lựa chọn mua nhiều nhất
                   </Title>
                   <ProductList />
                 </>
               ) : (
                 <>
-                  <Title level={4} style={{ fontFamily: "Oswald", color: "#FF6B81" }}>
+                  <Title
+                    level={4}
+                    style={{ fontFamily: "Oswald", color: "#FF6B81" }}
+                  >
                     Những gợi ý hay về các món quà
                   </Title>
                   <PostList />

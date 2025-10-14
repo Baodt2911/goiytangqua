@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Row, Col, List } from "antd";
+import { Button, Row, Col, List, Grid } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { PostType } from "../../types/post.type";
 import {
@@ -22,7 +22,10 @@ import { getCloudinaryUrl } from "../../utils/image";
 import SkeletonPostCard from "../../components/SkeletonPostCard";
 import { useAppSelector } from "../../app/hook";
 
+const { useBreakpoint } = Grid;
 const Article: React.FC = () => {
+  const screens = useBreakpoint();
+  const isTabletOrMobile = useMemo(() => !screens.xl, [screens]);
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -97,7 +100,13 @@ const Article: React.FC = () => {
     !!post && Array.isArray(post.products) && post.products.length > 0;
 
   return (
-    <div style={{ padding: "35px 0", maxWidth: "50%", margin: "0 auto" }}>
+    <div
+      style={{
+        padding: "35px 0",
+        maxWidth: isTabletOrMobile ? "90%" : "50%",
+        margin: "0 auto",
+      }}
+    >
       <Button
         type="primary"
         icon={<ArrowLeftOutlined />}

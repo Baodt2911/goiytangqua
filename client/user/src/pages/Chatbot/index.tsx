@@ -1,5 +1,20 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
-import { Card, Flex, Spin, Button, Typography, Popconfirm, App } from "antd";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
+import {
+  Card,
+  Flex,
+  Spin,
+  Button,
+  Typography,
+  Popconfirm,
+  App,
+  Grid,
+} from "antd";
 
 import {
   getMessagesConversationAsync,
@@ -10,7 +25,7 @@ import ChatInput from "../../components/ChatInput";
 import MessageBubble from "../../components/MessageBubble";
 import ConversationSidebar from "../../components/ConversationSidebar";
 import { useAppDispatch, useAppSelector } from "../../app/hook";
-import { DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined, MenuOutlined } from "@ant-design/icons";
 import {
   getMessagesFailure,
   getMessagesStart,
@@ -29,9 +44,13 @@ import { RootState } from "../../app/store";
 import { useNavigate } from "react-router-dom";
 import { sendChatMessage } from "../../features/socket/socket.service";
 
+const { useBreakpoint } = Grid;
+
 const ChatBotPage: React.FC = () => {
+  const screens = useBreakpoint();
   const { message } = App.useApp();
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [drawerVisible, setDrawerVisible] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, loading } = useAppSelector(
     (state: RootState) => state.message
@@ -48,6 +67,13 @@ const ChatBotPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
+  const isTabletOrMobile = useMemo(() => !screens.xl, [screens]);
+  const onOpenDrawer = () => {
+    setDrawerVisible(true);
+  };
+  const onCloseDrawer = () => {
+    setDrawerVisible(false);
+  };
   // Scroll to bottom function
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -173,13 +199,13 @@ const ChatBotPage: React.FC = () => {
   return (
     <div style={{ padding: 20 }}>
       <Flex gap={16} align="stretch">
-        <div style={{ width: 320, maxWidth: 360 }}>
-          <ConversationSidebar
-            activeId={activeId}
-            onSelect={handleSelectConversation}
-            onNewChat={handleNewChat}
-          />
-        </div>
+        <ConversationSidebar
+          activeId={activeId}
+          onSelect={handleSelectConversation}
+          onNewChat={handleNewChat}
+          onCloseDrawer={onCloseDrawer}
+          isOpenDrawer={drawerVisible}
+        />
         <Flex vertical style={{ flex: 1 }}>
           <div
             style={{
@@ -187,8 +213,18 @@ const ChatBotPage: React.FC = () => {
               padding: "10px 16px",
               borderBottom: "1px solid #f0f0f0",
               display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
+            <Button
+              type="primary"
+              icon={<MenuOutlined />}
+              onClick={onOpenDrawer}
+              style={{
+                display: isTabletOrMobile ? "block" : "none",
+              }}
+            />
             {activeId && (
               <Popconfirm
                 title="Thông báo"

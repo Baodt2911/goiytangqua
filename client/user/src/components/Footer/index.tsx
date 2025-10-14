@@ -1,3 +1,4 @@
+import React, { useMemo } from "react";
 import {
   Layout,
   Row,
@@ -7,28 +8,37 @@ import {
   Button,
   Space,
   Divider,
+  Grid,
 } from "antd";
-import { useSelector } from "react-redux";
 import { RootState } from "../../app/store";
 import logoDark from "../../assets/logos/logo-dark.png";
 import logoLight from "../../assets/logos/logo-light.png";
+import { useAppSelector } from "../../app/hook";
 
 const { Footer } = Layout;
 const { Title, Text, Link } = Typography;
 
-const AppFooter = () => {
-  const theme = useSelector((state: RootState) => state.theme.mode);
-
+const { useBreakpoint } = Grid;
+const AppFooter: React.FC = () => {
+  const theme = useAppSelector((state: RootState) => state.theme.mode);
+  const screens = useBreakpoint();
+  const isTabletOrMobile = useMemo(() => !screens.xl, [screens]);
   return (
     <Footer
       style={{
         background: theme === "dark" ? "#1f2937" : "#ffffff",
-        padding: "48px 24px 24px",
+        padding: isTabletOrMobile ? "24px 12px 12px" : "48px 24px 24px",
         marginTop: "40px",
       }}
     >
       {/* Main Footer Content */}
-      <Row gutter={[48, 32]} style={{ maxWidth: "1200px", margin: "0 auto" }}>
+      <Row
+        gutter={[48, 32]}
+        style={{
+          maxWidth: isTabletOrMobile ? "100%" : "80%",
+          margin: "0 auto",
+        }}
+      >
         {/* Logo & Navigation */}
         <Col xs={24} sm={24} md={12} lg={12}>
           <div style={{ marginBottom: "24px" }}>
@@ -51,7 +61,6 @@ const AppFooter = () => {
                 href="/about"
                 style={{
                   color: theme === "dark" ? "#d1d5db" : "#374151",
-                  fontSize: "14px",
                   fontWeight: "500",
                 }}
               >
@@ -61,7 +70,6 @@ const AppFooter = () => {
                 href="/careers"
                 style={{
                   color: theme === "dark" ? "#d1d5db" : "#374151",
-                  fontSize: "14px",
                   fontWeight: "500",
                 }}
               >
@@ -71,7 +79,6 @@ const AppFooter = () => {
                 href="/press"
                 style={{
                   color: theme === "dark" ? "#d1d5db" : "#374151",
-                  fontSize: "14px",
                   fontWeight: "500",
                 }}
               >
@@ -81,7 +88,6 @@ const AppFooter = () => {
                 href="/customer-care"
                 style={{
                   color: theme === "dark" ? "#d1d5db" : "#374151",
-                  fontSize: "14px",
                   fontWeight: "500",
                 }}
               >
@@ -91,7 +97,6 @@ const AppFooter = () => {
                 href="/services"
                 style={{
                   color: theme === "dark" ? "#d1d5db" : "#374151",
-                  fontSize: "14px",
                   fontWeight: "500",
                 }}
               >
@@ -111,12 +116,18 @@ const AppFooter = () => {
                 color: theme === "dark" ? "#f9fafb" : "#111827",
                 fontSize: "16px",
                 fontWeight: "600",
+                textAlign: isTabletOrMobile ? "left" : "right",
               }}
             >
               Nhận tin tức mới nhất từ chúng tôi
             </Title>
 
-            <Space.Compact style={{ width: "100%", maxWidth: "400px" }}>
+            <Space.Compact
+              style={{
+                width: "100%",
+                maxWidth: isTabletOrMobile ? "100%" : 400,
+              }}
+            >
               <Input
                 placeholder="Địa chỉ email của bạn..."
                 style={{
@@ -149,7 +160,7 @@ const AppFooter = () => {
       <Divider
         style={{
           margin: "32px auto",
-          maxWidth: "1200px",
+          maxWidth: isTabletOrMobile ? "100%" : "80%",
           borderColor: theme === "dark" ? "#4b5563" : "#e5e7eb",
         }}
       />
@@ -157,18 +168,17 @@ const AppFooter = () => {
       {/* Bottom Section - Legal & Copyright */}
       <Row
         style={{
-          maxWidth: "1200px",
+          maxWidth: isTabletOrMobile ? "100%" : "80%",
           margin: "0 auto",
           alignItems: "center",
         }}
       >
         <Col xs={24} sm={24} md={12} lg={12}>
-          <Space size="large" wrap>
+          <Space size={isTabletOrMobile ? "small" : "large"} wrap>
             <Link
               href="/terms"
               style={{
                 color: theme === "dark" ? "#9ca3af" : "#6b7280",
-                fontSize: "14px",
               }}
             >
               Điều khoản & Điều kiện
@@ -177,7 +187,6 @@ const AppFooter = () => {
               href="/privacy"
               style={{
                 color: theme === "dark" ? "#9ca3af" : "#6b7280",
-                fontSize: "14px",
               }}
             >
               Chính sách bảo mật
@@ -186,7 +195,6 @@ const AppFooter = () => {
               href="/accessibility"
               style={{
                 color: theme === "dark" ? "#9ca3af" : "#6b7280",
-                fontSize: "14px",
               }}
             >
               Khả năng tiếp cận
@@ -195,7 +203,6 @@ const AppFooter = () => {
               href="/legal"
               style={{
                 color: theme === "dark" ? "#9ca3af" : "#6b7280",
-                fontSize: "14px",
               }}
             >
               Pháp lý
@@ -203,12 +210,11 @@ const AppFooter = () => {
           </Space>
         </Col>
 
-        <Col xs={24} sm={24} md={12} lg={12}>
+        <Col xs={24} sm={24} md={12} lg={12} style={{ marginTop: 15 }}>
           <div style={{ textAlign: "right" }}>
             <Text
               style={{
                 color: theme === "dark" ? "#9ca3af" : "#6b7280",
-                fontSize: "14px",
               }}
             >
               Design with Baodt2911 © goiytangqua 2025.

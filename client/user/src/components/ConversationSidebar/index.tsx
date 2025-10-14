@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hook";
 import { RootState } from "../../app/store";
 import {
@@ -16,21 +16,28 @@ import {
   Input,
   Space,
   List,
+  Grid,
+  Drawer,
 } from "antd";
 import { SearchOutlined, PlusOutlined } from "@ant-design/icons";
 import { formatTime } from "../../utils/formatTime";
 const { Title, Text } = Typography;
-import logo from "../../assets/logos/favicon_io_dark/favicon-32x32.png";
 
+const { useBreakpoint } = Grid;
 const ConversationSidebar: React.FC<{
   activeId: string | null;
+  isOpenDrawer?: boolean;
   onSelect: (id: string) => void;
   onNewChat: () => void;
-}> = ({ activeId, onSelect, onNewChat }) => {
+  onCloseDrawer?: () => void;
+}> = ({ activeId, onSelect, onNewChat, onCloseDrawer, isOpenDrawer }) => {
+  const screens = useBreakpoint();
+  const isTabletOrMobile = useMemo(() => !screens.xl, [screens]);
   const { conversations, loading } = useAppSelector(
     (state: RootState) => state.conversation
   );
   const dispatch = useAppDispatch();
+
   useEffect(() => {
     const fetchConversations = async () => {
       try {
@@ -43,11 +50,11 @@ const ConversationSidebar: React.FC<{
       }
     };
     fetchConversations();
-  }, []);
+  }, [dispatch]);
 
-  return (
-    <Card
-      title={
+  const conversationContent = (
+    <>
+      <div style={{ padding: 12, flexShrink: 0 }}>
         <Flex align="center" justify="space-between">
           <Title level={4} style={{ margin: 0 }}>
             CHAT BOT
@@ -62,20 +69,9 @@ const ConversationSidebar: React.FC<{
             </Tooltip>
           </Space>
         </Flex>
-      }
-      styles={{
-        body: {
-          padding: 0,
-          height: "calc(80vh - 57px)",
-          display: "flex",
-          flexDirection: "column",
-        },
-      }}
-      bordered
-      style={{ height: "80vh" }}
-    >
-      <div style={{ padding: 12, flexShrink: 0 }}>
-        <Input prefix={<SearchOutlined />} placeholder="Search" allowClear />
+        <div style={{ marginTop: 12 }}>
+          <Input prefix={<SearchOutlined />} placeholder="Search" allowClear />
+        </div>
       </div>
       <div style={{ flex: 1, overflow: "hidden" }}>
         <List
@@ -105,7 +101,10 @@ const ConversationSidebar: React.FC<{
             const isActive = item._id === activeId;
             return (
               <List.Item
-                onClick={() => onSelect(item._id)}
+                onClick={() => {
+                  onSelect(item._id);
+                  onCloseDrawer?.();
+                }}
                 style={{
                   padding: "12px 16px",
                   cursor: "pointer",
@@ -113,8 +112,11 @@ const ConversationSidebar: React.FC<{
                 }}
               >
                 <List.Item.Meta
-                  avatar={<img src={logo} alt="logo" />}
-                  title={<Text strong>{item.title}</Text>}
+                  title={
+                    <Text ellipsis={true} strong>
+                      {item.title}
+                    </Text>
+                  }
                   description={
                     <Text type="secondary">{formatTime(item.updatedAt)}</Text>
                   }
@@ -124,6 +126,41 @@ const ConversationSidebar: React.FC<{
           }}
         />
       </div>
+    </>
+  );
+
+  return isTabletOrMobile ? (
+    <Drawer
+      placement="left"
+      onClose={onCloseDrawer}
+      open={isOpenDrawer}
+      width={320}
+      styles={{
+        body: {
+          padding: 0,
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+        },
+      }}
+    >
+      {conversationContent}
+    </Drawer>
+  ) : (
+    <Card
+      styles={{
+        body: {
+          padding: 0,
+          height: "calc(80vh - 57px)",
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+        },
+      }}
+      bordered
+      style={{ height: "80vh" }}
+    >
+      {conversationContent}
     </Card>
   );
 };

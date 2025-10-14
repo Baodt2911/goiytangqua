@@ -1,5 +1,5 @@
-import React from "react";
-import { Typography, Tag, Space, Flex } from "antd";
+import React, { useMemo } from "react";
+import { Typography, Tag, Space, Flex, Grid } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRightOutlined,
@@ -12,6 +12,7 @@ import { getCloudinaryUrl } from "../../utils/image";
 
 const { Text, Paragraph, Link } = Typography;
 
+const { useBreakpoint } = Grid;
 interface PostCardProps {
   post: PostType;
   isDetail?: boolean;
@@ -19,6 +20,8 @@ interface PostCardProps {
 
 const PostCard: React.FC<PostCardProps> = ({ post, isDetail = false }) => {
   const navigate = useNavigate();
+  const screens = useBreakpoint();
+  const isTabletOrMobile = useMemo(() => !screens.xl, [screens]);
 
   const handleReadMore = () => {
     navigate(`/article/${post.slug}`);
@@ -32,20 +35,27 @@ const PostCard: React.FC<PostCardProps> = ({ post, isDetail = false }) => {
     <Flex
       vertical
       align="center"
+      gap={"large"}
       style={{ marginBottom: 48, maxWidth: "100%", background: "#fff" }}
     >
       <div
         onClick={handleReadMore}
         style={{
           width: "100%",
-          height: 600,
+          height: isTabletOrMobile ? 450 : 600,
           boxShadow: "0 5px 10px 0 #f5f5f5",
           cursor: "pointer",
         }}
       >
         <img
-          style={{ width: "100%", height: "100%",objectFit:"contain" }}
-          src={getCloudinaryUrl(post.thumbnail,{w:1200,h:600,c:"fill",q:100,f:"auto"})}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          src={getCloudinaryUrl(post.thumbnail, {
+            w: 1200,
+            h: isTabletOrMobile ? 450 : 600,
+            c: "fit",
+            q: 100,
+            f: "auto",
+          })}
           alt={post.thumbnail}
         />
       </div>
@@ -53,10 +63,10 @@ const PostCard: React.FC<PostCardProps> = ({ post, isDetail = false }) => {
       <Flex
         vertical
         style={{
-          width: "70%",
+          width: isTabletOrMobile ? "100%" : "70%",
           background: "#fff",
           transform: "translateY(-150px)",
-          padding: "20px 50px",
+          padding: isTabletOrMobile ? "20px 30px" : "20px 50px",
         }}
       >
         <Space>
@@ -110,9 +120,9 @@ const PostCard: React.FC<PostCardProps> = ({ post, isDetail = false }) => {
               <div style={{ marginBottom: 20 }}>
                 <Space wrap>
                   {post.tags.map((tag: string, index: number) => (
-                    <Tag 
-                      key={index} 
-                      color="blue" 
+                    <Tag
+                      key={index}
+                      color="blue"
                       style={{ cursor: "pointer" }}
                       onClick={() => handleTagClick(tag)}
                     >
@@ -131,9 +141,9 @@ const PostCard: React.FC<PostCardProps> = ({ post, isDetail = false }) => {
               <div style={{ marginTop: 30, marginBottom: 20 }}>
                 <Space wrap>
                   {post.tags.map((tag: string, index: number) => (
-                    <Tag 
-                      key={index} 
-                      color="blue" 
+                    <Tag
+                      key={index}
+                      color="blue"
                       style={{ cursor: "pointer" }}
                       onClick={() => handleTagClick(tag)}
                     >

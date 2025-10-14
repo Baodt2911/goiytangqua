@@ -164,7 +164,6 @@ const FormRegister: React.FC = () => {
               placeholder="Nhập mã OTP 6 số"
               prefix={<SafetyOutlined />}
               maxLength={6}
-              style={{ textAlign: "center", fontSize: 16, letterSpacing: 4 }}
             />
             <Button
               type="primary"

@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Skeleton, Col, Row, Flex, List } from "antd";
+import React, { useEffect, useMemo } from "react";
+import { Grid, List } from "antd";
 import { useAppDispatch, useAppSelector } from "../../app/hook";
 import {
   getPostsStart,
@@ -10,9 +10,12 @@ import { getAllPostAsync } from "../../features/post/post.service";
 import { RootState } from "../../app/store";
 import PostCard from "../../components/PostCard";
 import SkeletonPostCard from "../../components/SkeletonPostCard";
-
+const { useBreakpoint } = Grid;
 const Home: React.FC = () => {
   const { posts, loading } = useAppSelector((state: RootState) => state.post);
+  const screens = useBreakpoint();
+  const isTabletOrMobile = useMemo(() => !screens.xl, [screens]);
+
   const dispatch = useAppDispatch();
   useEffect(() => {
     const fetchFeaturedPosts = async () => {
@@ -36,7 +39,7 @@ const Home: React.FC = () => {
     <div
       style={{
         padding: "35px 0",
-        maxWidth: "50%",
+        maxWidth: isTabletOrMobile ? "90%" : "50%",
         margin: "0 auto",
       }}
     >

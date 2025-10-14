@@ -12,10 +12,10 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../app/store";
 import { getFiltersAsync } from "../../features/filter/filter.service";
-import { 
-  getFiltersStart, 
-  getFiltersSuccess, 
-  getFiltersFailure 
+import {
+  getFiltersStart,
+  getFiltersSuccess,
+  getFiltersFailure,
 } from "../../features/filter/filter.slice";
 import { FilterType } from "../../types/filter.type";
 
@@ -26,10 +26,17 @@ interface GiftFilterProps {
   onClearFilters?: () => void;
 }
 
-const GiftFilter: React.FC<GiftFilterProps> = ({ onApplyFilters, onClearFilters }) => {
+const GiftFilter: React.FC<GiftFilterProps> = ({
+  onApplyFilters,
+  onClearFilters,
+}) => {
   const dispatch = useDispatch();
-  const { filters: filterData, loading } = useSelector((state: RootState) => state.filter);
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, string | string[]>>({});
+  const { filters: filterData, loading } = useSelector(
+    (state: RootState) => state.filter
+  );
+  const [selectedFilters, setSelectedFilters] = useState<
+    Record<string, string | string[]>
+  >({});
 
   // Fetch filter data from API
   useEffect(() => {
@@ -37,23 +44,25 @@ const GiftFilter: React.FC<GiftFilterProps> = ({ onApplyFilters, onClearFilters 
       try {
         dispatch(getFiltersStart());
         const data = await getFiltersAsync();
-        
+
         if (data.status === 200) {
           dispatch(getFiltersSuccess(data.filters));
           // Initialize selected filters state
           const initialFilters: Record<string, string | string[]> = {};
           data.filters.forEach((filter: FilterType) => {
-            if (filter.type === 'Sở thích') {
+            if (filter.type === "Sở thích") {
               initialFilters[filter.type] = [];
             } else {
-              initialFilters[filter.type] = '';
+              initialFilters[filter.type] = "";
             }
           });
           setSelectedFilters(initialFilters);
         }
       } catch (error: any) {
-        dispatch(getFiltersFailure(error.message || 'Không thể tải dữ liệu bộ lọc'));
-        message.error('Không thể tải dữ liệu bộ lọc');
+        dispatch(
+          getFiltersFailure(error.message || "Không thể tải dữ liệu bộ lọc")
+        );
+        message.error("Không thể tải dữ liệu bộ lọc");
       }
     };
 
@@ -61,16 +70,16 @@ const GiftFilter: React.FC<GiftFilterProps> = ({ onApplyFilters, onClearFilters 
   }, [dispatch]);
 
   const handleFilterChange = (filterType: string, value: string | string[]) => {
-    setSelectedFilters(prev => ({
+    setSelectedFilters((prev) => ({
       ...prev,
-      [filterType]: value
+      [filterType]: value,
     }));
   };
 
   const handleApplyFiltersClick = () => {
     // Only include filters that have values
     const filtersWithValues: Record<string, string | string[]> = {};
-    
+
     Object.entries(selectedFilters).forEach(([key, value]) => {
       if (Array.isArray(value)) {
         // For arrays, only include if not empty
@@ -79,23 +88,23 @@ const GiftFilter: React.FC<GiftFilterProps> = ({ onApplyFilters, onClearFilters 
         }
       } else {
         // For strings, only include if not empty
-        if (value && value.trim() !== '') {
+        if (value && value.trim() !== "") {
           filtersWithValues[key] = value;
         }
       }
     });
-    
-    console.log('Applied filters:', filtersWithValues);
+
+    console.log("Applied filters:", filtersWithValues);
     onApplyFilters?.(filtersWithValues);
   };
 
   const handleClearFiltersClick = () => {
     const clearedFilters: Record<string, string | string[]> = {};
-    filterData.forEach(filter => {
-      if (filter.type === 'Sở thích') {
+    filterData.forEach((filter) => {
+      if (filter.type === "Sở thích") {
         clearedFilters[filter.type] = [];
       } else {
-        clearedFilters[filter.type] = '';
+        clearedFilters[filter.type] = "";
       }
     });
     setSelectedFilters(clearedFilters);
@@ -109,7 +118,7 @@ const GiftFilter: React.FC<GiftFilterProps> = ({ onApplyFilters, onClearFilters 
 
     // Special handling for different filter types
     switch (type) {
-      case 'Sở thích':
+      case "Sở thích":
         return (
           <Select
             mode="multiple"
@@ -117,13 +126,16 @@ const GiftFilter: React.FC<GiftFilterProps> = ({ onApplyFilters, onClearFilters 
             placeholder={`Chọn ${type.toLowerCase()}`}
             value={value as string[]}
             onChange={(val) => handleFilterChange(type, val)}
-            options={options.map(option => ({ label: option, value: option }))}
+            options={options.map((option) => ({
+              label: option,
+              value: option,
+            }))}
             maxTagCount="responsive"
             showSearch
           />
         );
-      
-      case 'Giá trị quà tặng':
+
+      case "Giá trị quà tặng":
         return (
           <Radio.Group
             style={{
@@ -143,23 +155,29 @@ const GiftFilter: React.FC<GiftFilterProps> = ({ onApplyFilters, onClearFilters 
           </Radio.Group>
         );
 
-      case 'Giới tính':
+      case "Giới tính":
         return (
           <Radio.Group
             value={value as string}
             onChange={(e) => handleFilterChange(type, e.target.value)}
-            options={options.map(option => ({ label: option, value: option }))}
+            options={options.map((option) => ({
+              label: option,
+              value: option,
+            }))}
           />
         );
 
-      case 'Tuổi':
+      case "Tuổi":
         return (
           <Select
             style={{ width: "100%" }}
             placeholder={`Chọn ${type.toLowerCase()}`}
             value={value as string}
             onChange={(val) => handleFilterChange(type, val)}
-            options={options.map(option => ({ label: `${option} tuổi`, value: option }))}
+            options={options.map((option) => ({
+              label: `${option} tuổi`,
+              value: option,
+            }))}
             showSearch
           />
         );
@@ -171,7 +189,10 @@ const GiftFilter: React.FC<GiftFilterProps> = ({ onApplyFilters, onClearFilters 
             placeholder={`Chọn ${type.toLowerCase()}`}
             value={value as string}
             onChange={(val) => handleFilterChange(type, val)}
-            options={options.map(option => ({ label: option, value: option }))}
+            options={options.map((option) => ({
+              label: option,
+              value: option,
+            }))}
             showSearch
             allowClear
           />
@@ -191,7 +212,7 @@ const GiftFilter: React.FC<GiftFilterProps> = ({ onApplyFilters, onClearFilters 
     <Flex
       style={{
         width: "100%",
-        padding: "50px",
+        padding: "20px",
         gap: 30,
       }}
       vertical
@@ -199,7 +220,11 @@ const GiftFilter: React.FC<GiftFilterProps> = ({ onApplyFilters, onClearFilters 
       {/* Dynamic Filter Rendering */}
       <Flex style={{ width: "100%" }} wrap="wrap" gap={20}>
         {filterData.map((filter) => (
-          <Space key={filter._id} direction="vertical" style={{ minWidth: 200, flex: 1 }}>
+          <Space
+            key={filter._id}
+            direction="vertical"
+            style={{ minWidth: 200, flex: 1 }}
+          >
             <Title level={5}>{filter.type}</Title>
             {renderFilterComponent(filter)}
           </Space>

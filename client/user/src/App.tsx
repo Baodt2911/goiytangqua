@@ -8,12 +8,12 @@ import LoginPage from "./pages/Login";
 import AuthLayout from "./layouts/Auth";
 import MainLayout from "./layouts/Main";
 import SuggestGiftPage from "./pages/SuggestGift";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "./app/hook";
 import { loginSuccess, logout } from "./features/auth/auth.slice";
 import { isTokenExpired } from "./utils/token";
 import { refreshToken } from "./features/auth/auth.service";
-import { ConfigProvider, theme } from "antd";
+import { ConfigProvider, Grid, theme } from "antd";
 import UserDashboardPage from "./pages/UserDashboard";
 import { setUser } from "./features/user/user.slice";
 import { getCurrentUserAsync } from "./features/user/user.service";
@@ -30,7 +30,11 @@ import NotFound from "./pages/NotFound";
 import GuestRoute from "./components/GuestRoute";
 import PrivateRoute from "./components/PrivateRoute";
 
+const { useBreakpoint } = Grid;
+
 function App() {
+  const screens = useBreakpoint();
+  const isTabletOrMobile = useMemo(() => !screens.xl, [screens]);
   const dispatch = useAppDispatch();
   const isDarkMode = useAppSelector((state) => state.theme.mode);
   useEffect(() => {
@@ -56,6 +60,7 @@ function App() {
         algorithm:
           isDarkMode === "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
+          fontSize: isTabletOrMobile ? 12 : 14,
           colorPrimary: "#FF6B81", // Màu chính (nút, liên kết)
           colorInfo: "#FF8C00", // Màu phụ
           colorSuccess: "#28C76F", // Màu xanh lá (thành công)
