@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   Form,
   Input,
@@ -8,6 +8,7 @@ import {
   Card,
   Space,
   App,
+  Grid,
 } from "antd";
 import { GoogleOutlined, FacebookOutlined } from "@ant-design/icons";
 import { useAppDispatch, useAppSelector } from "../../app/hook";
@@ -21,12 +22,15 @@ import { getCurrentUserAsync } from "../../features/user/user.service";
 import { setUser } from "../../features/user/user.slice";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../app/store";
+const { useBreakpoint } = Grid;
 interface FormLoginValues {
   email: string;
   password: string;
 }
 const URL_API: string = import.meta.env.VITE_URL_API;
 const FormLogin: React.FC = () => {
+  const screens = useBreakpoint();
+  const isMobile = useMemo(() => !screens.md, [screens]);
   const { message } = App.useApp();
   const currentPath = useAppSelector(
     (state: RootState) => state.navigation.currentPath
@@ -98,7 +102,7 @@ const FormLogin: React.FC = () => {
   return (
     <Card
       style={{
-        width: 400,
+        width: isMobile ? 320 : 400,
         borderRadius: 10,
         boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
       }}

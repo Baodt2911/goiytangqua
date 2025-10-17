@@ -47,7 +47,6 @@ const Home: React.FC = () => {
         <SkeletonPostCard count={10} />
       ) : (
         <List
-          style={{ width: "100%" }}
           grid={{ gutter: 35, column: 1 }}
           dataSource={posts}
           loading={loading}

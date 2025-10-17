@@ -25,7 +25,7 @@ import ChatInput from "../../components/ChatInput";
 import MessageBubble from "../../components/MessageBubble";
 import ConversationSidebar from "../../components/ConversationSidebar";
 import { useAppDispatch, useAppSelector } from "../../app/hook";
-import { DeleteOutlined, MenuOutlined } from "@ant-design/icons";
+import { DeleteOutlined, WechatWorkOutlined } from "@ant-design/icons";
 import {
   getMessagesFailure,
   getMessagesStart,
@@ -162,7 +162,13 @@ const ChatBotPage: React.FC = () => {
   // Show authentication notification if user is not authenticated
   if (!isAuthenticated) {
     return (
-      <Card style={{ width: "50%", margin: "0 auto", marginTop: 50 }}>
+      <Card
+        style={{
+          width: isTabletOrMobile ? "90%" : "50%",
+          margin: "0 auto",
+          marginTop: 50,
+        }}
+      >
         <div
           style={{
             display: "flex",
@@ -197,7 +203,7 @@ const ChatBotPage: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: isTabletOrMobile ? 0 : 20 }}>
       <Flex gap={16} align="stretch">
         <ConversationSidebar
           activeId={activeId}
@@ -219,7 +225,7 @@ const ChatBotPage: React.FC = () => {
           >
             <Button
               type="primary"
-              icon={<MenuOutlined />}
+              icon={<WechatWorkOutlined />}
               onClick={onOpenDrawer}
               style={{
                 display: isTabletOrMobile ? "block" : "none",

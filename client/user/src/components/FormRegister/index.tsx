@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Form,
   Input,
@@ -8,13 +8,14 @@ import {
   Divider,
   Space,
   App,
+  Grid,
 } from "antd";
 import { SafetyOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { registerAsync, sendOtpAsync } from "../../features/auth/auth.service";
 
 const { Title, Paragraph } = Typography;
-
+const { useBreakpoint } = Grid;
 interface RegisterFormData {
   email: string;
   password: string;
@@ -22,6 +23,8 @@ interface RegisterFormData {
 }
 
 const FormRegister: React.FC = () => {
+  const screens = useBreakpoint();
+  const isMobile = useMemo(() => !screens.md, [screens]);
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -94,7 +97,7 @@ const FormRegister: React.FC = () => {
   return (
     <Card
       style={{
-        width: 400,
+        width: isMobile ? 320 : 400,
         borderRadius: 10,
         boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
       }}

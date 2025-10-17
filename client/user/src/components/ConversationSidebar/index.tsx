@@ -133,6 +133,7 @@ const ConversationSidebar: React.FC<{
     <Drawer
       placement="left"
       onClose={onCloseDrawer}
+      closable={false}
       open={isOpenDrawer}
       width={320}
       styles={{

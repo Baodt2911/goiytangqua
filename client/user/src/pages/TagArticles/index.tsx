@@ -1,31 +1,35 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Spin, Typography, Empty, List } from "antd";
+import { Button, Typography, Empty, List, Grid } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { PostType } from "../../types/post.type";
 import { getAllPostAsync } from "../../features/post/post.service";
-import { 
-  getPostsStart, 
-  getPostsSuccess, 
-  getPostsFailure
+import {
+  getPostsStart,
+  getPostsSuccess,
+  getPostsFailure,
 } from "../../features/post/post.slice";
 import { RootState, AppDispatch } from "../../app/store";
 import PostCard from "../../components/PostCard";
 import SkeletonPostCard from "../../components/SkeletonPostCard";
 
 const { Title } = Typography;
-
+const { useBreakpoint } = Grid;
 const TagArticles: React.FC = () => {
+  const screens = useBreakpoint();
+
+  const isTabletOrMobile = useMemo(() => !screens.xl, [screens]);
+
   const { tagName } = useParams<{ tagName: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  
+
   // Local state for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
   const [allPosts, setAllPosts] = useState<PostType[]>([]);
-  
+
   const { posts, loading, error } = useSelector(
     (state: RootState) => state.post
   );
@@ -36,12 +40,16 @@ const TagArticles: React.FC = () => {
 
       try {
         dispatch(getPostsStart());
-        const { posts: foundPosts, currentPage: page, totalPage: total } = await getAllPostAsync({
+        const {
+          posts: foundPosts,
+          currentPage: page,
+          totalPage: total,
+        } = await getAllPostAsync({
           page: 1,
           pageSize: 10,
-          tags: tagName
+          tags: tagName,
         });
-        
+
         dispatch(getPostsSuccess(foundPosts || []));
         setAllPosts(foundPosts || []);
         setCurrentPage(page || 1);
@@ -67,12 +75,16 @@ const TagArticles: React.FC = () => {
     if (currentPage >= totalPage || loading) return;
 
     try {
-      const { posts: morePosts, currentPage: page, totalPage: total } = await getAllPostAsync({
+      const {
+        posts: morePosts,
+        currentPage: page,
+        totalPage: total,
+      } = await getAllPostAsync({
         page: currentPage + 1,
         pageSize: 10,
-        tags: tagName!
+        tags: tagName!,
       });
-      
+
       const newAllPosts = [...allPosts, ...(morePosts || [])];
       setAllPosts(newAllPosts);
       dispatch(getPostsSuccess(newAllPosts));
@@ -85,7 +97,13 @@ const TagArticles: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "35px 0", maxWidth: "50%", margin: "0 auto" }}>
+    <div
+      style={{
+        padding: "35px 0",
+        maxWidth: isTabletOrMobile ? "90%" : "50%",
+        margin: "0 auto",
+      }}
+    >
       <Button
         type="primary"
         icon={<ArrowLeftOutlined />}
@@ -110,7 +128,7 @@ const TagArticles: React.FC = () => {
         <>
           <List
             itemLayout="vertical"
-            size="large"
+            grid={{ gutter: 35, column: 1 }}
             dataSource={posts}
             renderItem={(post) => (
               <List.Item key={post._id}>
@@ -121,18 +139,16 @@ const TagArticles: React.FC = () => {
 
           {currentPage < totalPage && (
             <div style={{ textAlign: "center", marginTop: 32 }}>
-              <Button
-                type="primary"
-                onClick={handleLoadMore}
-                loading={loading}
-              >
+              <Button type="primary" onClick={handleLoadMore} loading={loading}>
                 Xem thêm
               </Button>
             </div>
           )}
 
           {error && (
-            <div style={{ marginTop: 16, color: "#ff4d4f", textAlign: "center" }}>
+            <div
+              style={{ marginTop: 16, color: "#ff4d4f", textAlign: "center" }}
+            >
               {error}
             </div>
           )}

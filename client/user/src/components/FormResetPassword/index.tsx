@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { Form, Input, Button, Typography, Card, App } from "antd";
+import React, { useEffect, useMemo, useState } from "react";
+import { Form, Input, Button, Typography, Card, App, Grid } from "antd";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { resetPasswordAsync } from "../../features/auth/auth.service";
-
+const { useBreakpoint } = Grid;
 interface FormResetPasswordValues {
   newPassword: string;
   confirmPassword: string;
 }
 
 const FormResetPassword: React.FC = () => {
+  const screens = useBreakpoint();
+  const isMobile = useMemo(() => !screens.md, [screens]);
   const { message } = App.useApp();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -55,7 +57,7 @@ const FormResetPassword: React.FC = () => {
   return (
     <Card
       style={{
-        width: 400,
+        width: isMobile ? 320 : 400,
         borderRadius: 10,
         boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
       }}

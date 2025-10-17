@@ -1,9 +1,13 @@
-import React from "react";
-import { Button, Result } from "antd";
+import React, { useMemo } from "react";
+import { Button, Grid, Result } from "antd";
 import { useNavigate } from "react-router-dom";
 import { HomeOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+const { useBreakpoint } = Grid;
 
 const NotFound: React.FC = () => {
+  const screens = useBreakpoint();
+  const isMobile = useMemo(() => !screens.md, [screens]);
+
   const navigate = useNavigate();
 
   const handleGoHome = () => {
@@ -29,8 +33,8 @@ const NotFound: React.FC = () => {
         style={{
           background: "#fff",
           borderRadius: "16px",
-          padding: "60px 40px",
-          maxWidth: "600px",
+          padding: isMobile ? "28px 20px" : "60px 40px",
+          maxWidth: isMobile ? "92%" : "600px",
           width: "100%",
           textAlign: "center",
           boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
@@ -39,84 +43,81 @@ const NotFound: React.FC = () => {
         <Result
           status="404"
           title={
-            <span style={{ color: "#FF6B81", fontSize: "48px", fontWeight: "bold" }}>
+            <span
+              style={{
+                color: "#FF6B81",
+                fontSize: isMobile ? "40px" : "48px",
+                fontWeight: "bold",
+              }}
+            >
               404
             </span>
           }
           subTitle={
             <div>
-              <p style={{ fontSize: "24px", color: "#333", marginBottom: "16px" }}>
+              <p
+                style={{
+                  fontSize: isMobile ? "18px" : "24px",
+                  color: "#333",
+                  marginBottom: isMobile ? "12px" : "16px",
+                }}
+              >
                 Oops! Trang không tồn tại
               </p>
               <p style={{ fontSize: "16px", color: "#666", lineHeight: "1.6" }}>
-                Trang bạn đang tìm kiếm có thể đã bị xóa, đổi tên hoặc tạm thời không khả dụng.
+                Trang bạn đang tìm kiếm có thể đã bị xóa, đổi tên hoặc tạm thời
+                không khả dụng.
                 <br />
                 Hãy kiểm tra lại đường dẫn hoặc quay về trang chủ.
               </p>
             </div>
           }
           extra={
-            <div style={{ marginTop: "32px" }}>
+            <div
+              style={{
+                marginTop: isMobile ? "20px" : "32px",
+                display: "flex",
+                gap: isMobile ? "8px" : "16px",
+                flexDirection: isMobile ? "column" : "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <Button
                 type="primary"
-                size="large"
+                size={isMobile ? "middle" : "large"}
                 icon={<HomeOutlined />}
                 onClick={handleGoHome}
                 style={{
-                  marginRight: "16px",
                   background: "#FF6B81",
                   borderColor: "#FF6B81",
                   borderRadius: "8px",
-                  height: "48px",
-                  fontSize: "16px",
+                  height: isMobile ? "44px" : "48px",
+                  fontSize: isMobile ? "15px" : "16px",
                   fontWeight: "500",
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 Về trang chủ
               </Button>
               <Button
-                size="large"
+                size={isMobile ? "middle" : "large"}
                 icon={<ArrowLeftOutlined />}
                 onClick={handleGoBack}
                 style={{
                   borderColor: "#FF6B81",
                   color: "#FF6B81",
                   borderRadius: "8px",
-                  height: "48px",
-                  fontSize: "16px",
+                  height: isMobile ? "44px" : "48px",
+                  fontSize: isMobile ? "15px" : "16px",
                   fontWeight: "500",
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 Quay lại
               </Button>
             </div>
           }
-        />
-        
-        {/* Decorative elements */}
-        <div
-          style={{
-            position: "absolute",
-            top: "-50px",
-            left: "-50px",
-            width: "100px",
-            height: "100px",
-            background: "rgba(255, 107, 129, 0.1)",
-            borderRadius: "50%",
-            zIndex: -1,
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: "-30px",
-            right: "-30px",
-            width: "60px",
-            height: "60px",
-            background: "rgba(255, 140, 0, 0.1)",
-            borderRadius: "50%",
-            zIndex: -1,
-          }}
         />
       </div>
     </div>
