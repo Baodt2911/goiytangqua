@@ -2,7 +2,7 @@ import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { _otp, _user } from "src/models";
 import bcrypt from "bcrypt";
 import otpGenerate from "otp-generator";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 export const createOtpService = async (email: string, otp: string) => {
   try {
     const salt = bcrypt.genSaltSync(10);
@@ -51,17 +51,9 @@ export const sendToEmail = async (
   html: string
 ) => {
   try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASS,
-      },
-    });
-    await transporter.sendMail({
-      from: process.env.EMAIL,
+    const resend = new Resend(process.env.RESEND_KEY);
+    await resend.emails.send({
+      from: "GoiyTangQua <no-reply@goiytangqua.site>",
       to: email,
       subject: title,
       html: html,
