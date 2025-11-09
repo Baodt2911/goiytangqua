@@ -12,26 +12,24 @@ export const getAllPostAsync = async (params: Partial<PostParamsType>) => {
 };
 
 export const getPostBySlugAsync = async (slug: string) => {
-  const res = await axiosInstance.get(`/post/slug/${slug}`,
-    {
-      headers: {
-        "Skip-Auth": "true",
-      },
-    });
+  const res = await axiosInstance.get(`/post/slug/${slug}`, {
+    headers: {
+      "Skip-Auth": "true",
+    },
+  });
   return res.data;
 };
 
 export const getBestPostAsync = async () => {
-  const res = await axiosInstance.get(`/post/best`,
-    {
-      headers: {
-        "Skip-Auth": "true",
-      },
-    });
+  const res = await axiosInstance.get(`/post/best`, {
+    headers: {
+      "Skip-Auth": "true",
+    },
+  });
   return res.data;
 };
 
 export const increaseViewPostAsync = async (slug: string) => {
-  const res = await axiosInstance.get(`/post/slug/${slug}/view`);
+  const res = await axiosInstance.post(`/post/slug/${slug}/view`);
   return res.data;
 };

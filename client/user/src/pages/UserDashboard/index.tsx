@@ -15,7 +15,7 @@ const UserDashboard: React.FC = () => {
     >
       <div
         style={{
-          width: "100%",
+          width: isTabletOrMobile ? "100%" : "60%",
           margin: "0 auto",
           background: "#fff",
           padding: isTabletOrMobile ? "24px 16px" : "50px 50px",

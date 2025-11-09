@@ -103,7 +103,7 @@ const Article: React.FC = () => {
     <div
       style={{
         padding: "35px 0",
-        maxWidth: isTabletOrMobile ? "90%" : "50%",
+        maxWidth: isTabletOrMobile ? "90%" : hasProducts ? "80%" : "60%",
         margin: "0 auto",
       }}
     >

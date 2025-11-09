@@ -175,7 +175,11 @@ const FormRegister: React.FC = () => {
               disabled={countdown > 0}
               style={{ minWidth: 120 }}
             >
-              {countdown > 0 ? `${countdown}s` : "Gửi OTP"}
+              {countdown > 0 ? (
+                <span style={{ color: "#FF6B81" }}>{`${countdown}s`}</span>
+              ) : (
+                "Gửi OTP"
+              )}
             </Button>
           </Space.Compact>
         </Form.Item>
