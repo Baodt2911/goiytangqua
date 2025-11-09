@@ -39,9 +39,9 @@ interface AIPromptFormProps {
 }
 
 const aiModels = {
-  openai: ["gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-3.5-turbo"],
+  openai: ["gpt-4.1", "gpt-4.1-mini", "gpt-4o", "gpt-4o-mini"],
   claude: ["claude-3-sonnet", "claude-3-haiku", "claude-3-opus"],
-  gemini: ["gemini-1.5-flash", "gemini-1.0-pro"],
+  gemini: ["gemini-2.5-flash", "gemini-2.5-pro"],
 };
 
 const categories = [
