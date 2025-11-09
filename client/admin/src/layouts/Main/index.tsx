@@ -6,15 +6,14 @@ import {
   ProductOutlined,
   LoginOutlined,
   OpenAIOutlined,
+  FileSearchOutlined,
 } from "@ant-design/icons";
 import mainLogo from "../../assets/logos/logo-light.png";
 import subLogo from "../../assets/logos/favicon_io_light/favicon-32x32.png";
 import type { MenuProps } from "antd";
 import { Button, Layout, Menu, Typography } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../app/hook";
-import { logout } from "../../features/auth/auth.slice";
-import { RootState } from "../../app/store";
+import { logoutAsync } from "../../features/auth/auth.service";
 const { Content, Footer, Sider } = Layout;
 const { Text } = Typography;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -42,6 +41,7 @@ const items: MenuItem[] = [
   getItem("Sản phẩm", "product", <ProductOutlined />),
   getItem("Bộ lọc", "filter", <FilterOutlined />),
   getItem("AI Prompt", "ai-prompt", <OpenAIOutlined />),
+  getItem("Logs", "logs", <FileSearchOutlined />),
 ];
 
 const siderStyle: React.CSSProperties = {
@@ -60,7 +60,6 @@ const MainLayout: React.FC = () => {
   const [selectedKey, setSelectedKey] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(true);
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const path = location.pathname.split("/")[1];
@@ -120,6 +119,10 @@ const MainLayout: React.FC = () => {
                 setSelectedKey(key);
                 navigate("ai-prompt");
                 break;
+              case "logs":
+                setSelectedKey(key);
+                navigate("logs");
+                break;
               default:
                 break;
             }
@@ -133,7 +136,7 @@ const MainLayout: React.FC = () => {
             width: "100%",
             textAlign: "center",
           }}
-          onClick={() => dispatch(logout())}
+          onClick={() => logoutAsync()}
         >
           {collapsed ? (
             <LoginOutlined style={{ color: "white" }} />

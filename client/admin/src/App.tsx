@@ -8,6 +8,7 @@ import WritingPage from "./pages/Writing";
 import PostsPage from "./pages/Posts";
 import ProductPage from "./pages/Product";
 import AIPromptPage from "./pages/AIPrompt";
+import ErrorLogsPage from "./pages/ErrorLogs";
 import { useEffect } from "react";
 import { isTokenExpired } from "./utils/token";
 import { refreshToken } from "./features/auth/auth.service";
@@ -47,6 +48,7 @@ function App() {
             <Route path="filter" element={<FilterPage />} />
             <Route path="product" element={<ProductPage />} />
             <Route path="ai-prompt" element={<AIPromptPage />} />
+            <Route path="logs" element={<ErrorLogsPage />} />
           </Route>
         </Route>
 
