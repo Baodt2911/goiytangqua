@@ -13,3 +13,4 @@ export * from "./content_schedule.controller";
 export * from "./stats.controller";
 export * from "./chat.controller";
 export * from "./conversation.controller";
+export * from "./logs.controller";

@@ -11,3 +11,4 @@ export { default as aiPromptRouter } from "./ai_prompt.route";
 export { default as contentScheduleRouter } from "./content_schedule.route";
 export { default as statsRouter } from "./stats.route";
 export { default as chatRouter } from "./chat.route";
+export { default as logsRouter } from "./logs.route";
