@@ -9,3 +9,4 @@ export * from "./validation.ai_prompt.middleware";
 export * from "./validation.content_schedule.middleware";
 export * from "./validation.chat.middleware";
 export * from "./validate.comment.middleware";
+export * from "./errorHandler.middleware";

@@ -23,10 +23,13 @@ import {
   contentScheduleRouter,
   statsRouter,
   chatRouter,
+  logsRouter,
 } from "./routes";
 import passport from "passport";
 import scheduleAnniversaries from "./schedules/anniversary";
 import scheduleGenerateContent from "./schedules/content";
+import { errorHandler } from "./middlewares";
+import schedulePublishPost from "./schedules/post";
 
 dotenv.config();
 
@@ -80,7 +83,8 @@ app.use(
 );
 
 scheduleAnniversaries.start();
-// scheduleGenerateContent.start();
+scheduleGenerateContent.start();
+schedulePublishPost.start();
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello, world!");
@@ -98,6 +102,7 @@ app.use("/prompt", aiPromptRouter);
 app.use("/content-schedule", contentScheduleRouter);
 app.use("/stats", statsRouter);
 app.use("/chat", chatRouter);
+app.use("/logs", logsRouter);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(StatusCodes.NOT_FOUND).json({
@@ -106,14 +111,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-app.use((err: any, req: Request, res: Response, next: any) => {
-  const status = err.status || StatusCodes.INTERNAL_SERVER_ERROR;
-  const message = err.message || ReasonPhrases.INTERNAL_SERVER_ERROR;
-  res.status(status).json({
-    status,
-    message,
-  });
-});
+app.use(errorHandler);
+
 const startServer = async () => {
   try {
     await connectMongoDb();
