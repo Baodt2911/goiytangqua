@@ -32,5 +32,6 @@ export type getAllPostRequestQueryDTO = {
   isFeatured: boolean;
   generatedBy: "human" | "ai" | "hybrid";
   tags: string;
+  status?: "draft" | "published" | "scheduled";
   filters?: Record<string, string>;
 };

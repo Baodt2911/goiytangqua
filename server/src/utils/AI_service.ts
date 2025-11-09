@@ -55,9 +55,11 @@ function toReadableStreamFromAsyncIterator(
 }
 
 export async function callAIWithPrompt(prompt: AIPrompt, finalPrompt: string) {
-  const systemMsg = prompt.systemMessage || "Bạn là trợ lý AI thông minh.";
+  const systemMsg =
+    prompt.systemMessage ||
+    "Bạn là trợ lý AI thông minh. Bạn không được trả về bất kỳ ký tự đặc biệt * nào ngoài văn bản thuần túy.";
   const temperature = prompt.temperature ?? 0.7;
-  const maxTokens = prompt.maxTokens ?? 1024;
+  const maxTokens = prompt.maxTokens ?? 4096;
   const history = prompt.history || [];
   const stream = prompt.stream || false;
 

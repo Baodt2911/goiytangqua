@@ -28,6 +28,7 @@ export const getAllPostsController = async (
       generatedBy,
       tags,
       filters,
+      status: Status,
     } = req.query;
     const { status, element } = await getAllPostsService(viewer, {
       page: +page,
@@ -37,6 +38,7 @@ export const getAllPostsController = async (
       generatedBy,
       tags,
       filters,
+      status: Status,
     });
     res.status(status).json({
       status,

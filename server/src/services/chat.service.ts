@@ -36,7 +36,7 @@ export const chatService = async (user: any, msg: string, _id?: string) => {
     const text = (await callAIWithPrompt(
       {
         aiProvider: "gemini",
-        aiModel: "gemini-1.5-flash",
+        aiModel: "gemini-2.5-flash",
         history,
       },
       msg
@@ -66,7 +66,7 @@ export const chatStreamService = async (
     const stream = (await callAIWithPrompt(
       {
         aiProvider: "gemini",
-        aiModel: "gemini-1.5-flash",
+        aiModel: "gemini-2.5-flash",
         history,
         stream: true,
       },

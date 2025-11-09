@@ -45,7 +45,7 @@ export const chatEvent = (socket: CustomSocketType) => {
         const stream = (await callAIWithPrompt(
           {
             aiProvider: "gemini",
-            aiModel: "gemini-1.5-flash",
+            aiModel: "gemini-2.5-flash",
             history,
             stream: true,
           },
