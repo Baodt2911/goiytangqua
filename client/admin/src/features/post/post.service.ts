@@ -32,7 +32,7 @@ export const deletePostAsync = async (_id: string) => {
   return res.data;
 };
 
-export const updatePostAsync = async (data: PostUpdateProps) => {
+export const updatePostAsync = async (data: PostUpdateProps & { scheduledFor?: Date; publishedAt?: Date }) => {
   const { _id, ...other } = data;
   const res = await axiosInstance.patch(`/post/update/${_id}`, other);
   return res.data;
