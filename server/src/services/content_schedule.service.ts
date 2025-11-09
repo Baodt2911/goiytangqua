@@ -1,4 +1,3 @@
-import { log } from "console";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import slugify from "slugify";
 import {
@@ -7,6 +6,7 @@ import {
 } from "src/dtos";
 import { _contentSchedule, _aiPrompt, _post, _product } from "src/models";
 import { callAIWithPrompt } from "src/utils";
+import logger from "src/utils/logger";
 
 // src/utils/schedule.ts
 export function calculateNextRunAt(
@@ -189,12 +189,13 @@ export const generateContentService = async (schedule: any) => {
           products
         )}
         - Nên viết theo dạng có các chỉ mục, ví dụ: <h2>1. Tên sản phẩm</h2>
-        - Bắt buộc phải css cho đẹp, cỡ chữ, căn chỉnh ảnh và nội dung phù hợp
+        - Bắt buộc phải css cho đẹp, cỡ chữ, căn chỉnh ảnh và nội dung phù hợp, không css màu cho nội dung
 
       3. Format link sản phẩm: <a href="URL_SẢN_PHẨM" target="_blank">TÊN_SẢN_PHẨM</a>
       4. Format ảnh sản phẩm: <img src="URL_HÌNH_SẢN_PHẨM" alt="TÊN_SẢN_PHẨM">
-      5. Giữ đúng tone: tích cực, ấm áp, truyền cảm hứng, thân thiện
-      6. QUAN TRỌNG: Tuân thủ chính xác format trên, bắt đầu bằng ===TITLE=== và kết thúc bằng ===END===
+      5. Ảnh phải được set width height phù hợp, không quá to hoặc nhỏ
+      6. Giữ đúng tone: tích cực, ấm áp, truyền cảm hứng, thân thiện
+      7. QUAN TRỌNG: Tuân thủ chính xác format trên, bắt đầu bằng ===TITLE=== và kết thúc bằng ===END===
 
       Ví dụ format mong muốn:
       ===TITLE===
@@ -209,27 +210,20 @@ export const generateContentService = async (schedule: any) => {
       ===END===
       `;
 
-    // Ensure maxTokens is sufficient for the content length requested
-    const adjustedMaxTokens = Math.max(maxTokens || 1000, 2000); // Minimum 2000 tokens
-
-    console.log(
-      `Using maxTokens: ${adjustedMaxTokens} (original: ${maxTokens})`
-    );
-
+    const maxOutputTokens =
+      Math.round(targetWordCount * 2.8) > maxTokens
+        ? Math.round(targetWordCount * 2.8)
+        : maxTokens;
     const AI_Response = (await callAIWithPrompt(
       {
         aiProvider,
         aiModel,
         temperature,
-        maxTokens: adjustedMaxTokens,
+        maxTokens: maxOutputTokens,
         systemMessage,
       },
       userPrompt
     )) as any;
-
-    console.log("=== RAW AI RESPONSE ===");
-    console.log(AI_Response);
-    console.log("=== END RAW RESPONSE ===");
 
     // Improved parsing with better regex patterns
     const titleMatch = AI_Response.match(
@@ -246,63 +240,38 @@ export const generateContentService = async (schedule: any) => {
     let description = descMatch ? descMatch[1].trim() : "";
     let content = contentMatch ? contentMatch[1].trim() : "";
 
-    console.log("=== REGEX MATCHES ===");
-    console.log("Title match:", titleMatch ? "✅" : "❌", titleMatch?.[0]);
-    console.log("Description match:", descMatch ? "✅" : "❌", descMatch?.[0]);
-    console.log(
-      "Content match:",
-      contentMatch ? "✅" : "❌",
-      contentMatch?.[0]
-    );
-
     if (!title) {
       console.error("⚠️ Title not found or empty");
-      console.log("Searching for title patterns in response...");
       const altTitleMatch = AI_Response.match(
         /===TITLE===([\s\S]*?)===DESCRIPTION===/i
       );
-      if (altTitleMatch)
-        console.log("Alternative title found:", altTitleMatch[1]);
+      if (altTitleMatch) {
+        title = altTitleMatch[1].trim();
+      }
     }
     if (!description) {
       console.error("⚠️ Description not found or empty");
-      console.log("Searching for description patterns in response...");
       const altDescMatch = AI_Response.match(
         /===DESCRIPTION===([\s\S]*?)===CONTENT===/i
       );
-      if (altDescMatch)
-        console.log("Alternative description found:", altDescMatch[1]);
+      if (altDescMatch) {
+        description = altDescMatch[1].trim();
+      }
     }
     if (!content) {
       console.error("⚠️ Content not found or empty");
-      console.log("Searching for content patterns in response...");
-
       // Try to extract content even if ===END=== is missing (truncated response)
       const altContentMatch = AI_Response.match(
         /===CONTENT===\s*\n?\s*([\s\S]*?)(?:===END===|$)/i
       );
       if (altContentMatch) {
         const extractedContent = altContentMatch[1].trim();
-        console.log(
-          "Alternative content found (length:",
-          extractedContent.length,
-          ")"
-        );
-        console.log(
-          "Content preview:",
-          extractedContent.substring(0, 200) + "..."
-        );
-
         // Use the extracted content if it's substantial enough
         if (extractedContent.length > 50) {
-          console.log("Using alternative content extraction");
           content = extractedContent;
         }
       }
     }
-
-    console.log("=== EXTRACTED VALUES ===");
-    console.log({ title, description, content });
     if (title && content && description) {
       await _post.create({
         title,
@@ -335,6 +304,7 @@ export const generateContentService = async (schedule: any) => {
     }
   } catch (error: any) {
     console.error(error);
+    logger.error(error);
     throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
   }
 };
@@ -385,24 +355,19 @@ export const updateNextRunService = async (schedule: any) => {
 };
 
 export const checkScheduleService = async () => {
-  try {
-    const now = new Date();
+  const now = new Date();
 
-    const dueSchedules = await _contentSchedule.find({
-      status: "active",
-      nextRunAt: { $lte: now },
-    });
-    console.log(`Found ${dueSchedules} due schedules`);
-    for (const schedule of dueSchedules) {
-      try {
-        await generateContentService(schedule);
-        await updateNextRunService(schedule);
-      } catch (error) {
-        console.error(`Schedule ${schedule.name} failed:`, error);
-      }
+  const dueSchedules = await _contentSchedule.find({
+    status: "active",
+    nextRunAt: { $lte: now },
+  });
+  for (const schedule of dueSchedules) {
+    console.log(`Generate "${schedule.name}" schedule content...`);
+    try {
+      await generateContentService(schedule);
+      await updateNextRunService(schedule);
+    } catch (error: any) {
+      console.error(`Schedule ${schedule.name} failed:`, error.message);
     }
-  } catch (error: any) {
-    console.error(error);
-    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
   }
 };

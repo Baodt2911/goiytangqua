@@ -29,7 +29,7 @@ export const createPostService = async (data: PostRequestDTO) => {
     if (!description) {
       const prompt = `Tạo cho tôi description cho bài viết này của tôi ngắn gọn dưới 200 từ. Đây là dữ liệu bài viết ${data.content}`;
       const AI_Response = await callAIWithPrompt(
-        { aiProvider: "gemini", aiModel: "gemini-1.5-flash" },
+        { aiProvider: "gemini", aiModel: "gemini-2.5-flash" },
         prompt
       );
       description = AI_Response as string;
@@ -51,7 +51,12 @@ export const createPostService = async (data: PostRequestDTO) => {
 };
 export const getPostService = async (slug: string) => {
   try {
-    const existingPosts = await _post.findOne({ slug }).populate("products");
+    const existingPosts = await _post
+      .findOne({
+        slug,
+        status: "published",
+      })
+      .populate("products");
     if (!existingPosts) {
       return {
         status: StatusCodes.NOT_FOUND,
@@ -96,11 +101,15 @@ export const getAllPostsService = async (
       generatedBy,
       tags,
       filters,
+      status,
     } = data;
     let query: any = {};
 
     if (!viewer || viewer.role !== "admin") {
       query.status = "published";
+    }
+    if (status && viewer?.role === "admin") {
+      query.status = status;
     }
 
     if (search) {
@@ -144,8 +153,6 @@ export const getAllPostsService = async (
       .populate("products")
       .lean();
 
-    if (!viewer || viewer.role !== "admin") {
-    }
     return {
       status: StatusCodes.OK,
       element: { posts: existingPosts, currentPage: page, totalPage },
@@ -256,6 +263,23 @@ export const deletePostService = async (id: string) => {
       status: StatusCodes.OK,
       message: "Xóa bài viết thành công",
     };
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
+export const checkSchedulePostService = async () => {
+  try {
+    const dueSchedules = await _post.find({
+      status: "scheduled",
+      scheduledFor: { $lte: new Date() },
+    });
+    for (const post of dueSchedules) {
+      post.status = "published";
+      post.publishedAt = new Date();
+      await post.save();
+      console.log(`Đã xuất bản bài viết theo lịch: ${post.title}`);
+    }
   } catch (error: any) {
     console.error(error);
     throw new Error(error.message || ReasonPhrases.INTERNAL_SERVER_ERROR);
