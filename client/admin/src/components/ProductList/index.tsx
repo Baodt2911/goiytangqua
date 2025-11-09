@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import type { PaginationProps } from "antd";
-import { Row, Col, Pagination, Skeleton, Flex, List } from "antd";
+import { Row, Col, Skeleton, Flex, List } from "antd";
 import ProductCard from "../ProductCard";
 import { getAllProductsAsync } from "../../features/product/product.service";
 import { useAppDispatch, useAppSelector } from "../../app/hook";
@@ -74,7 +74,7 @@ const ProductList: React.FC<{
       fetchProducts();
     }, 500);
     return () => clearTimeout(timeout);
-  }, [currentPage, filters]);
+  }, [currentPage, filters, dispatch]);
   return (
     <>
       <ProductFilters
@@ -85,6 +85,12 @@ const ProductList: React.FC<{
         <SkeletonListCard />
       ) : (
         <List
+          pagination={{
+            onChange: onChangePage,
+            pageSize: 8,
+            align: "center",
+            total: totalPage * 8,
+          }}
           grid={{
             gutter: [35, 35],
             column: 4,
@@ -106,17 +112,6 @@ const ProductList: React.FC<{
               ? `Không tìm thấy sản phẩm cho "${filters.search}"`
               : "Không có sản phẩm nào",
           }}
-        />
-      )}
-
-      {products.length == 0 ? (
-        <></>
-      ) : (
-        <Pagination
-          align="center"
-          onChange={onChangePage}
-          current={currentPage}
-          total={totalPage}
         />
       )}
     </>
