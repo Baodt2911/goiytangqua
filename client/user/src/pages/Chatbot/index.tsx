@@ -58,12 +58,21 @@ const ChatBotPage: React.FC = () => {
   const streaming = useAppSelector(
     (state: RootState) => state.message.streaming
   );
+
   const currentConversationId = useAppSelector(
     (state: RootState) => state.message.currentConversationId
   );
   const isAuthenticated = useAppSelector(
     (state: RootState) => state.auth.isAuthenticated
   );
+
+  const [loadingStream, setLoadingStream] = useState(false);
+  useEffect(() => {
+    if (streaming === null) {
+      setLoadingStream(false);
+    }
+  }, [streaming]);
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -153,6 +162,9 @@ const ChatBotPage: React.FC = () => {
       }
       message.success(data.message);
       dispatch(deleteConversation(id));
+      setActiveId(null);
+      dispatch(clearCurrentConversationId());
+      dispatch(clearMessages());
     } catch (error: any) {
       console.error(error);
       dispatch(getConversationsFailure(error.message));
@@ -289,7 +301,19 @@ const ChatBotPage: React.FC = () => {
                   {messages?.map((m, index) => (
                     <MessageBubble key={index} message={m} />
                   ))}
-                  {streaming?.content ? (
+
+                  {loadingStream && (
+                    <MessageBubble
+                      message={{
+                        _id: "loading",
+                        role: "assistant",
+                        content: "",
+                      }}
+                      isStreaming={true}
+                    />
+                  )}
+
+                  {streaming?.content && (
                     <MessageBubble
                       key="streaming"
                       message={{
@@ -299,7 +323,8 @@ const ChatBotPage: React.FC = () => {
                       }}
                       isStreaming={true}
                     />
-                  ) : null}
+                  )}
+
                   <div ref={messagesEndRef} />
                 </>
               )}
@@ -308,12 +333,13 @@ const ChatBotPage: React.FC = () => {
               style={{ borderTop: "1px solid #f0f0f0", background: "#fafafa" }}
             >
               <ChatInput
-                onSend={(msg: string) =>
+                onSend={(msg: string) => {
                   sendChatMessage({
                     msg,
                     conversationId: currentConversationId || undefined,
-                  })
-                }
+                  });
+                  setLoadingStream(true);
+                }}
               />
             </div>
           </Card>

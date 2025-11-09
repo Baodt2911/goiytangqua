@@ -18,7 +18,6 @@ const MessageBubble: React.FC<{
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
-
   return (
     <Flex
       align="start"
