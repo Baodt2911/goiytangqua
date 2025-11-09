@@ -1,6 +1,14 @@
 import axios from "axios";
 import { store } from "../../app/store";
 import { loginSuccess, logout } from "./auth.slice";
+export const loginAsync = async (data: { email: string; password: string }) => {
+  const res = await axios.post(
+    `${import.meta.env.VITE_URL_API}/auth/login`,
+    data,
+    { withCredentials: true }
+  );
+  return res.data;
+};
 export const refreshToken = async () => {
   try {
     const {
@@ -19,5 +27,18 @@ export const refreshToken = async () => {
   } catch {
     store.dispatch(logout());
     return null;
+  }
+};
+export const logoutAsync = async () => {
+  try {
+    await axios.post(
+      `${import.meta.env.VITE_URL_API}/auth/logout`,
+      {},
+      { withCredentials: true }
+    );
+    store.dispatch(logout());
+    window.location.reload();
+  } catch (error) {
+    console.error("Failed logout: ", error);
   }
 };

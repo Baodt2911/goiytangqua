@@ -1,13 +1,13 @@
 import React from "react";
 import { Form, Input, Button, Typography, Card, message } from "antd";
 import { useAppDispatch } from "../../app/hook";
-import axiosInstance from "../../configs/axios.config";
 import { useNavigate } from "react-router-dom";
 import {
   loginFailure,
   loginStart,
   loginSuccess,
 } from "../../features/auth/auth.slice";
+import { loginAsync } from "../../features/auth/auth.service";
 type FormLoginValues = {
   email: string;
   password: string;
@@ -17,29 +17,21 @@ const FormLogin: React.FC = () => {
   const dispatch = useAppDispatch();
   const handleFinish = async (values: FormLoginValues) => {
     dispatch(loginStart());
-    axiosInstance
-      .post(
-        "/auth/login",
-        {
-          email: values.email,
-          password: values.password,
-        },
-        { headers: { "Skip-Auth": "true" } }
-      )
-      .then((res) => {
-        const { data } = res;
-        if (!res.statusText) {
-          return message.error(data.message);
-        }
-        dispatch(loginSuccess(data.accessToken));
-        message.success(data.message);
-        navigate("/dashboard");
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        message.error(error.response.data.message);
-        dispatch(loginFailure(error.response.data.message));
-      });
+    try {
+      const data = await loginAsync(values);
+
+      if (data.status >= 400) {
+        dispatch(loginFailure(data.message));
+        return message.warning(data.message);
+      }
+      dispatch(loginSuccess(data.accessToken));
+      message.success(data.message);
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Error:", error);
+      message.error(error.response.data.message);
+      dispatch(loginFailure(error.response.data.message));
+    }
   };
   return (
     <Card
