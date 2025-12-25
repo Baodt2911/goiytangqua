@@ -32,7 +32,7 @@ export const chatEvent = (socket: CustomSocketType) => {
             title: msg,
             messages: [{ role: "user", content: msg }],
           });
-          convId = conversation._id as string;
+          convId = (conversation._id as any).toString();
         }
 
         if (conversationId) {

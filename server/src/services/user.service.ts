@@ -17,11 +17,16 @@ import { UpdateProfileRequestDTO } from "src/dtos";
 
 export const googleCallbackService = async (user: any) => {
   try {
-    const existingUser = (await _user.findById(user.userId).lean()) as User;
-    const { googleRefreshToken, ...other } = existingUser;
-    const accessToken = generateAccessToken(other);
-    const refreshToken = generateRefreshToken(other);
-    await saveRefreshTokenService(refreshToken, other);
+    const existingUser = await _user.findById(user.userId).lean<User>();
+    if (!existingUser) {
+      return {
+        status: StatusCodes.NOT_FOUND,
+        message: "Không tìm thấy người dùng",
+      };
+    }
+    const accessToken = generateAccessToken(existingUser);
+    const refreshToken = generateRefreshToken(existingUser);
+    await saveRefreshTokenService(refreshToken, existingUser);
     return {
       status: StatusCodes.OK,
       message: "Đăng nhập thành công",
@@ -37,8 +42,8 @@ export const googleCallbackService = async (user: any) => {
 };
 export const getCurrentUserService = async (user: any) => {
   try {
-    const existingUser = (await _user.findById(user.userId).lean()) as User;
-    if (!user) {
+    const existingUser = await _user.findById(user.userId).lean<User>();
+    if (!existingUser) {
       return {
         status: StatusCodes.NOT_FOUND,
         message: "Không tìm thấy người dùng",
@@ -57,7 +62,7 @@ export const getCurrentUserService = async (user: any) => {
 };
 export const loginService = async (email: string, password: string) => {
   try {
-    const isUser = (await _user.findOne({ email }).lean()) as User;
+    const isUser = await _user.findOne({ email }).lean<User>();
     if (!isUser) {
       return {
         status: StatusCodes.NOT_FOUND,

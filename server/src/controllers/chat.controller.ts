@@ -49,7 +49,7 @@ export const chatStreamController = async (
         title: msg,
         messages: [{ role: "user", content: msg }],
       });
-      conversationId = conversation._id as string;
+      conversationId = (conversation._id as any).toString();
     }
 
     if (clientConvId) {

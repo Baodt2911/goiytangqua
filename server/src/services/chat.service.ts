@@ -23,7 +23,7 @@ export const chatService = async (user: any, msg: string, _id?: string) => {
         title: msg,
         messages: [{ role: "user", content: msg }],
       });
-      conversationId = conversation._id as string;
+      conversationId = (conversation._id as any).toString();
     }
 
     if (_id) {

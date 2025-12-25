@@ -15,11 +15,10 @@ export const configPassport = () => {
   });
   passport.deserializeUser(async (data: any, done) => {
     try {
-      const user = (await _user
+      const user = await _user
         .findOne({ googleId: data.googleId })
-        .lean()) as User;
-      const { _id, role } = user;
-      done(null, { userId: _id, role });
+        .lean<User>();
+      done(null, { userId: user?._id, role: user?.role });
     } catch (error) {
       done(error, null);
     }

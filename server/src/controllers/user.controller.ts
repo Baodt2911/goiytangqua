@@ -78,7 +78,7 @@ export const googleCallbackController = async (req: Request, res: Response) => {
   try {
     const user = req.user;
     const { status, message, element } = await googleCallbackService(user);
-    if (status === StatusCodes.OK) {
+    if (status === StatusCodes.OK && element) {
       const currentTime = new Date();
       setCookie(res, "refreshToken", element?.refreshToken, {
         path: "/",
@@ -87,20 +87,21 @@ export const googleCallbackController = async (req: Request, res: Response) => {
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         expires: new Date(currentTime.getTime() + 15 * 24 * 60 * 60 * 1000), // 15 days
       });
+      const script = `
+        <script>
+          window.opener.postMessage(
+            { 
+              success: true, 
+              accessToken: "${element.accessToken}",
+            }, 
+            "${process.env.URL_CLIENT}"
+          );
+          window.close();
+        </script>
+      `;
+      res.send(script);
     }
-    const script = `
-      <script>
-        window.opener.postMessage(
-          { 
-            success: true, 
-            accessToken: "${element.accessToken}",
-          }, 
-          "${process.env.URL_CLIENT}"
-        );
-        window.close();
-      </script>
-    `;
-    res.send(script);
+    res.status(StatusCodes.UNAUTHORIZED);
     // res.redirect(process.env.URL_CLIENT + "/home");
     // res.status(status).json({
     //   status,
