@@ -3,9 +3,9 @@
 # Demo
 
 - **Server**: https://goiytangqua-api-968570585587.europe-west1.run.app
+- **Client Admin**: https://goiytangqua-admin.vercel.app
   - Tài khoản: goiytangqua@gmail.com
   - Mật khẩu: 29112004
-- **Client Admin**: https://goiytangqua-admin.vercel.app
 - **Client User**: https://www.goiytangqua.site
 
 ## 📋 Mô tả dự án
